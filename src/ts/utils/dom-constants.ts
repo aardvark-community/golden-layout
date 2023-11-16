@@ -12,6 +12,7 @@ export namespace DomConstants {
         Vertical = 'lm_vertical',
         Horizontal = 'lm_horizontal',
         Dragging = 'lm_dragging',
+        PointerTracking = "lm_pointer_tracking",
         DragProxy = 'lm_dragProxy',
         Header = 'lm_header',
         Tabs = 'lm_tabs',

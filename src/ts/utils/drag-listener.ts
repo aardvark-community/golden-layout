@@ -78,6 +78,8 @@ export class DragListener extends EventEmitter {
 
         this._oDocument.addEventListener('pointermove', this._pointerMoveEventListener);
         this._oDocument.addEventListener('pointerup', this._pointerUpEventListener, { passive: true });
+        this._eBody.classList.add(DomConstants.ClassName.PointerTracking);
+        this._eElement.classList.add(DomConstants.ClassName.PointerTracking);
         this._pointerTracking = true;
 
         this._timeout = setTimeout(
@@ -143,6 +145,8 @@ export class DragListener extends EventEmitter {
         if (this._pointerTracking) {
             this._oDocument.removeEventListener('pointermove', this._pointerMoveEventListener);
             this._oDocument.removeEventListener('pointerup', this._pointerUpEventListener);
+            this._eBody.classList.remove(DomConstants.ClassName.PointerTracking);
+            this._eElement.classList.remove(DomConstants.ClassName.PointerTracking);
             this._pointerTracking = false;
         }    
     }
