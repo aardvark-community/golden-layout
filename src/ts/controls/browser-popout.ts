@@ -285,8 +285,14 @@ export class BrowserPopout extends EventEmitter {
             throw new Error('Error while writing to localStorage ' + getErrorMessage(e));
         }
 
-        const url = new URL(location.href);
+        const url = new URL('/gl-popout', location.origin);
         url.searchParams.set('gl-window', storageKey);
+
+        const theme = this._layoutManager.container.dataset.theme;
+        if (theme !== undefined) {
+            url.searchParams.set('gl-theme', theme);
+        }
+
         return url.toString();
     }
 
