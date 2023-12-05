@@ -217,14 +217,19 @@ export class BrowserPopout extends EventEmitter {
             }
         }
 
-        this._popoutWindow.addEventListener('load', () => this.positionWindow(), { passive: true })
-        this._popoutWindow.addEventListener('beforeunload', () => {
-            if (this._layoutManager.layoutConfig.settings.popInOnClose) {
-                this.popIn();
-            } else {
-                this._onClose();
+        this._popoutWindow.addEventListener('load', () => {
+            this.positionWindow();
+
+            if (this._popoutWindow) {
+                this._popoutWindow.addEventListener('beforeunload', () => {
+                    if (this._layoutManager.layoutConfig.settings.popInOnClose) {
+                        this.popIn();
+                    } else {
+                        this._onClose();
+                    }
+                }, { passive: true });
             }
-        }, { passive: true })
+        }, { passive: true });
 
         /**
          * Polling the childwindow to find out if GoldenLayout has been initialised
