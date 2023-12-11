@@ -195,14 +195,14 @@ export class RowOrColumn extends ContentItem {
 
         super.removeChild(contentItem, keepChild);
 
-        if (this.contentItems.length === 1 && this.isClosable === true) {
-            const childItem = this.contentItems[0];
-            this.contentItems.length = 0;
-            this._rowOrColumnParent.replaceChild(this, childItem, true);
-        } else {
-            this.updateSize(false);
-            this.emitBaseBubblingEvent('stateChanged');
-        }
+        // if (this.contentItems.length === 1 && this.isClosable === true) {
+        //     const childItem = this.contentItems[0];
+        //     this.contentItems.length = 0;
+        //     this._rowOrColumnParent.replaceChild(this, childItem, true);
+        // } else {
+        this.updateSize(false);
+        this.emitBaseBubblingEvent('stateChanged');
+        // }
     }
 
     /**
