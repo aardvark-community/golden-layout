@@ -319,10 +319,9 @@ export abstract class LayoutManager extends EventEmitter {
         } else {
             if (this._groundItem === undefined) {
                 throw new UnexpectedUndefinedError('LMLL11119');
-            } else {
-                this.createSubWindows(); // still needs to be tested
-
+            } else {                
                 this.layoutConfig = LayoutConfig.resolve(layoutConfig);
+                this.createSubWindows(); // still needs to be tested
                 this._groundItem.loadRoot(this.layoutConfig.root);
                 this.checkLoadedLayoutMaximiseItem();
                 this.adjustColumnsResponsive();
