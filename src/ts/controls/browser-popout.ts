@@ -26,6 +26,8 @@ export class BrowserPopout extends EventEmitter {
     private _isInitialised;
     /** @internal */
     private _checkReadyInterval: ReturnType<typeof setTimeout> | undefined;
+    /** @internal */
+    private _preventPopInOnClose: boolean;
 
     /**
      * @param _config - GoldenLayout item config
@@ -44,6 +46,7 @@ export class BrowserPopout extends EventEmitter {
 
         this._isInitialised = false;
         this._popoutWindow = null;
+        this._preventPopInOnClose = false;
         this.createWindow();
     }
 
@@ -106,7 +109,11 @@ export class BrowserPopout extends EventEmitter {
         return this._popoutWindow;
     }
 
-    close(): void {
+    close(preventPopIn = false): void {
+        if (preventPopIn) {
+            this._preventPopInOnClose = true;
+        }
+
         if (this.getGlInstance()) {
             this.getGlInstance().closeWindow();
         } else {
@@ -222,7 +229,7 @@ export class BrowserPopout extends EventEmitter {
 
             if (this._popoutWindow) {
                 this._popoutWindow.addEventListener('beforeunload', () => {
-                    if (this._layoutManager.layoutConfig.settings.popInOnClose) {
+                    if (this._layoutManager.layoutConfig.settings.popInOnClose && !this._preventPopInOnClose) {
                         this.popIn();
                     } else {
                         this._onClose();

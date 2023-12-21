@@ -930,9 +930,9 @@ export abstract class LayoutManager extends EventEmitter {
      * Applications can call this method when a page is unloaded to remove its open popouts
      */
 
-    closeAllOpenPopouts() {
+    closeAllOpenPopouts(preventPopIn = false) {
         for (let i = 0; i < this._openPopouts.length; i++) {
-            this._openPopouts[i].close();
+            this._openPopouts[i].close(preventPopIn);
         }
 
         this._openPopouts.length = 0;
