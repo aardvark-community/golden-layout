@@ -38,7 +38,7 @@ export class BrowserPopout extends EventEmitter {
     _initialWindowSize: Rect,
     _layoutManager: LayoutManager);
     // (undocumented)
-    close(): void;
+    close(preventPopIn?: boolean): void;
     // (undocumented)
     getGlInstance(): LayoutManager;
     getWindow(): Window;
@@ -1081,7 +1081,7 @@ export abstract class LayoutManager extends EventEmitter {
     checkMinimiseMaximisedStack(): void;
     clear(): void;
     clearComponentFocus(suppressEvent?: boolean): void;
-    closeAllOpenPopouts(): void;
+    closeAllOpenPopouts(preventPopIn?: boolean): void;
     // @internal
     closeWindow(): void;
     // @internal (undocumented)
