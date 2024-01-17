@@ -480,7 +480,7 @@ export namespace ResolvedLayoutConfig {
     export interface Header {
         readonly show: false | Side;
         readonly popout: false | string;
-        readonly dock: string;
+        readonly popin: string;
         readonly maximise: false | string;
         readonly minimise: string;
         readonly close: false | string;
@@ -492,7 +492,7 @@ export namespace ResolvedLayoutConfig {
             return {
                 show: original.show,
                 popout: original.popout,
-                dock: original.dock,
+                popin: original.popin,
                 close: original.close,
                 maximise: original.maximise,
                 minimise: original.minimise,
@@ -503,7 +503,7 @@ export namespace ResolvedLayoutConfig {
         export const defaults: ResolvedLayoutConfig.Header = {
             show: Side.top,
             popout: 'open in new window',
-            dock: 'dock',
+            popin: 'dock',
             maximise: 'maximise',
             minimise: 'minimise',
             close: 'close',

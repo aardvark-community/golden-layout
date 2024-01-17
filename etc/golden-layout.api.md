@@ -1522,11 +1522,11 @@ export namespace ResolvedLayoutConfig {
         // (undocumented)
         readonly close: false | string;
         // (undocumented)
-        readonly dock: string;
-        // (undocumented)
         readonly maximise: false | string;
         // (undocumented)
         readonly minimise: string;
+        // (undocumented)
+        readonly popin: string;
         // (undocumented)
         readonly popout: false | string;
         // (undocumented)

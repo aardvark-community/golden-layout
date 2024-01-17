@@ -1028,7 +1028,7 @@ export namespace LayoutConfig {
                 show,
                 popout: header?.popout ?? labels?.popout ??
                     (settings?.showPopoutIcon === false ? false : ResolvedLayoutConfig.Header.defaults.popout),
-                dock: header?.popin ?? labels?.popin ?? ResolvedLayoutConfig.Header.defaults.dock,
+                popin: header?.popin ?? labels?.popin ?? ResolvedLayoutConfig.Header.defaults.popin,
                 maximise: header?.maximise ?? labels?.maximise ??
                     (settings?.showMaximiseIcon === false ? false : ResolvedLayoutConfig.Header.defaults.maximise),
                 close: header?.close ?? labels?.close ??

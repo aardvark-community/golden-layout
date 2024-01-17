@@ -197,7 +197,7 @@ export class VirtualLayout extends LayoutManager {
         } else {
             const popInButtonElement = document.createElement('div');
             popInButtonElement.classList.add(DomConstants.ClassName.Popin);
-            popInButtonElement.setAttribute('title', this.layoutConfig.header.dock);
+            popInButtonElement.setAttribute('title', this.layoutConfig.header.popin);
             const iconElement = document.createElement('div');
             iconElement.classList.add(DomConstants.ClassName.Icon);
             const bgElement = document.createElement('div');
