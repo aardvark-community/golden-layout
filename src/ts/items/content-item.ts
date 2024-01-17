@@ -156,7 +156,8 @@ export abstract class ContentItem extends EventEmitter {
             /**
              * If this was the last content item, remove this node as well
              */
-            if (!this.isGround && this._isClosable === true) {
+            // if (!this.isGround && this._isClosable === true) {
+            if (!this.isGround) {
                 if (this._parent === null) {
                     throw new UnexpectedNullError('CIUC00874');
                 } else {

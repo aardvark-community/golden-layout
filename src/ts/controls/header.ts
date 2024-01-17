@@ -358,15 +358,15 @@ export class Header extends EventEmitter {
 
     /** @internal */
     private handleTabInitiatedDragStartEvent(x: number, y: number, dragListener: DragListener, componentItem: ComponentItem) {
-        if (!this._canRemoveComponent) {
-            dragListener.cancelDrag();
-        } else {
+        // if (!this._canRemoveComponent) {
+        //     dragListener.cancelDrag();
+        // } else {
             if (this._componentDragStartEvent === undefined) {
                 throw new UnexpectedUndefinedError('HHTDSE22294');
             } else {
                 this._componentDragStartEvent(x, y, dragListener, componentItem);
             }
-        }
+        // }
     }
 
     /** @internal */
