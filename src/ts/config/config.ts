@@ -254,7 +254,7 @@ export namespace HeaderedItemConfig {
         popout?: false | string;
         dock?: false | string;
         maximise?: false | string;
-        close?: string;
+        close?: false | string;
         minimise?: string;
         tabDropdown?: false | string;
     }

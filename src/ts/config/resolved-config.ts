@@ -99,7 +99,7 @@ export namespace ResolvedHeaderedItemConfig {
         readonly show: false | Side | undefined;
         readonly popout: false | string | undefined;
         readonly maximise: false | string | undefined;
-        readonly close: string | undefined;
+        readonly close: false | string | undefined;
         readonly minimise: string | undefined;
         readonly tabDropdown: false | string | undefined;
     }

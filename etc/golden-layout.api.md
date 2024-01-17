@@ -788,7 +788,7 @@ export namespace HeaderedItemConfig {
     // (undocumented)
     export interface Header {
         // (undocumented)
-        close?: string;
+        close?: false | string;
         // (undocumented)
         dock?: false | string;
         // (undocumented)
@@ -1411,7 +1411,7 @@ export namespace ResolvedHeaderedItemConfig {
     // (undocumented)
     export interface Header {
         // (undocumented)
-        readonly close: string | undefined;
+        readonly close: false | string | undefined;
         // (undocumented)
         readonly maximise: false | string | undefined;
         // (undocumented)
