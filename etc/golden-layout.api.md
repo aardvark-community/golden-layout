@@ -667,7 +667,6 @@ export class Header extends EventEmitter {
     constructor(
     _layoutManager: LayoutManager,
     _parent: Stack, settings: Header.Settings,
-    _configClosable: boolean,
     _getActiveComponentItemEvent: Header.GetActiveComponentItemEvent, closeEvent: Header.CloseEvent,
     _popoutEvent: Header.PopoutEvent | undefined,
     _maximiseToggleEvent: Header.MaximiseToggleEvent | undefined,
@@ -702,8 +701,6 @@ export class Header extends EventEmitter {
     processMinimised(): void;
     // @internal
     removeTab(componentItem: ComponentItem): void;
-    // @internal
-    setRowColumnClosable(value: boolean): void;
     // @internal (undocumented)
     setSide(value: Side): void;
     // (undocumented)
@@ -715,7 +712,7 @@ export class Header extends EventEmitter {
     // (undocumented)
     get tabsContainerElement(): HTMLElement;
     // @internal
-    updateClosability(): void;
+    updateButtons(): void;
     // @internal
     updateTabSizes(): void;
 }
@@ -1866,8 +1863,6 @@ export class Stack extends ComponentParentableItem {
     setActiveContentItem(item: ContentItem): void;
     // @internal (undocumented)
     setFocusedValue(value: boolean): void;
-    // @internal (undocumented)
-    setRowColumnClosable(value: boolean): void;
     // (undocumented)
     get stackParent(): ContentItem;
     // (undocumented)

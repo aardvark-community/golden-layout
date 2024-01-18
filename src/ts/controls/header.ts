@@ -26,19 +26,11 @@ export class Header extends EventEmitter {
     /** @internal */
     private readonly _show: boolean;
     /** @internal */
-    private readonly _popoutEnabled: boolean;
-    /** @internal */
     private readonly _popoutLabel: string;
-    /** @internal */
-    private readonly _maximiseEnabled: boolean;
     /** @internal */
     private readonly _maximiseLabel: string;
     /** @internal */
-    private readonly _minimiseEnabled: boolean;
-    /** @internal */
     private readonly _minimiseLabel: string;
-    /** @internal */
-    private readonly _closeEnabled: boolean;
     /** @internal */
     private readonly _closeLabel: string;
     /** @internal */
@@ -57,21 +49,17 @@ export class Header extends EventEmitter {
     private readonly _documentMouseUpListener: (this: void) => void;
 
     /** @internal */
-    private _rowColumnClosable = true;
-    /** @internal */
-    private _canRemoveComponent: boolean;
-    /** @internal */
     private _side: Side;
     /** @internal */
     private _leftRightSided: boolean;
     /** @internal */
-    private readonly _closeButton: HeaderButton | null = null;
+    private readonly _closeButton: HeaderButton;
     /** @internal */
-    private readonly _popoutButton: HeaderButton | null = null;
+    private readonly _popoutButton: HeaderButton;
     /** @internal */
     private readonly _tabDropdownButton: HeaderButton;
     /** @internal */
-    private readonly _maximiseButton: HeaderButton | undefined;
+    private readonly _maximiseButton: HeaderButton;
     // /** @internal */
     // private _activeComponentItem: ComponentItem | null = null; // only used to identify active tab
 
@@ -95,8 +83,6 @@ export class Header extends EventEmitter {
         /** @internal */
         private _parent: Stack,
         settings: Header.Settings,
-        /** @internal */
-        private readonly _configClosable: boolean,
         /** @internal */
         private _getActiveComponentItemEvent: Header.GetActiveComponentItemEvent,
         closeEvent: Header.CloseEvent,
@@ -125,19 +111,13 @@ export class Header extends EventEmitter {
         );
 
         this._show = settings.show;
-        this._popoutEnabled = settings.popoutEnabled;
         this._popoutLabel = settings.popoutLabel;
-        this._maximiseEnabled = settings.maximiseEnabled;
         this._maximiseLabel = settings.maximiseLabel;
-        this._minimiseEnabled = settings.minimiseEnabled;
         this._minimiseLabel = settings.minimiseLabel;
-        this._closeEnabled = settings.closeEnabled;
         this._closeLabel = settings.closeLabel;
         this._tabDropdownEnabled = settings.tabDropdownEnabled;
         this._tabDropdownLabel = settings.tabDropdownLabel;
         this.setSide(settings.side);
-
-        this._canRemoveComponent = this._configClosable;
 
         this._element = document.createElement('section');
         this._element.classList.add(DomConstants.ClassName.Header);
@@ -161,27 +141,22 @@ export class Header extends EventEmitter {
             );
         }
 
-        if (this._popoutEnabled) {
-            this._popoutButton = new HeaderButton(this, this._popoutLabel, DomConstants.ClassName.Popout, () => this.handleButtonPopoutEvent());
-        }
+        this._popoutButton = new HeaderButton(this, this._popoutLabel, DomConstants.ClassName.Popout, () => this.handleButtonPopoutEvent());
 
         /**
          * Maximise control - set the component to the full size of the layout
          */
-        if (this._maximiseEnabled) {
-            this._maximiseButton = new HeaderButton(this, this._maximiseLabel, DomConstants.ClassName.Maximise,
-                (ev) => this.handleButtonMaximiseToggleEvent(ev)
-            );
-        }
+        this._maximiseButton = new HeaderButton(this, this._maximiseLabel, DomConstants.ClassName.Maximise,
+            (ev) => this.handleButtonMaximiseToggleEvent(ev)
+        );
 
         /**
          * Close button
          */
-        if (this._configClosable) {
-            this._closeButton = new HeaderButton(this, this._closeLabel, DomConstants.ClassName.Close, () => closeEvent());
-        }
+        this._closeButton = new HeaderButton(this, this._closeLabel, DomConstants.ClassName.Close, () => closeEvent());
 
         this.processTabDropdownActiveChanged();
+        this.updateButtons();
     }
 
     /**
@@ -236,51 +211,37 @@ export class Header extends EventEmitter {
     }
 
     /**
-     * Programmatically set closability.
-     * @param value - Whether to enable/disable closability.
-     * @returns Whether the action was successful
+     * Updates the visibility of the header buttons.
      * @internal
      */
-    setRowColumnClosable(value: boolean): void {
-        this._rowColumnClosable = value;
-        this.updateClosability();
-    }
+    updateButtons(): void {
+        const activeComponentItem = this._getActiveComponentItemEvent();
+        
+        // Close button is only visible if all items of the stack are closable
+        // and the active component has its close button set to visible. Note that
+        // hiding the close button in a header of an item is not equivalent to making
+        // that item unclosable.
+        const allClosable = this.tabs.every(tab => tab.componentItem.isClosable);
+        const close = activeComponentItem?.headerConfig?.close !== false;
+        setElementDisplayVisibility(this._closeButton.element, allClosable && close);
+        
+        // Popout button is visible if the active component is closable and has its popout button enabled.
+        // If popoutWholeStack = true, the button is visible if this is true for every item.
+        let popout: boolean;
 
-    /**
-     * Updates the header's closability. If a stack/header is able
-     * to close, but has a non closable component added to it, the stack is no
-     * longer closable until all components are closable.
-     * @internal
-     */
-    updateClosability(): void {
-        let isClosable: boolean;
-        if (!this._configClosable) {
-            isClosable = false;
+        if (this._layoutManager.layoutConfig.settings.popoutWholeStack) {
+            const allPopoutable = this.tabs.every(tab => tab.componentItem.headerConfig?.popout !== false) 
+            popout = allClosable && allPopoutable;
         } else {
-            if (!this._rowColumnClosable) {
-                isClosable = false;
-            } else {
-                isClosable = true;
-                const len = this.tabs.length;
-                for (let i = 0; i < len; i++) {
-                    const tab = this._tabsContainer.tabs[i];
-                    const item = tab.componentItem;
-                    if (!item.isClosable) {
-                        isClosable = false;
-                        break;
-                    }
-                }
-            }
+            const closable = activeComponentItem?.isClosable !== false;
+            popout = closable && (activeComponentItem?.headerConfig?.popout !== false);
         }
 
-        if (this._closeButton !== null) {
-            setElementDisplayVisibility(this._closeButton.element, isClosable);
-        }
-        if (this._popoutButton !== null) {
-            setElementDisplayVisibility(this._popoutButton.element, isClosable);
-        }
+        setElementDisplayVisibility(this._popoutButton.element, popout);
 
-        this._canRemoveComponent = isClosable || this._tabsContainer.tabCount > 1;
+        // Maximize button is only visible if all items have their maximize button enabled.
+        const maximize = this.tabs.every(tab => tab.componentItem.headerConfig?.maximise !== false);
+        setElementDisplayVisibility(this._maximiseButton.element, maximize);
     }
 
     /** @internal */
@@ -338,12 +299,10 @@ export class Header extends EventEmitter {
 
     /** @internal */
     private handleTabInitiatedComponentRemoveEvent(componentItem: ComponentItem) {
-        if (this._canRemoveComponent) {
-            if (this._componentRemoveEvent === undefined) {
-                throw new UnexpectedUndefinedError('HHTCE22294');
-            } else {
-                this._componentRemoveEvent(componentItem);
-            }
+        if (this._componentRemoveEvent === undefined) {
+            throw new UnexpectedUndefinedError('HHTCE22294');
+        } else {
+            this._componentRemoveEvent(componentItem);
         }
     }
 
@@ -358,15 +317,11 @@ export class Header extends EventEmitter {
 
     /** @internal */
     private handleTabInitiatedDragStartEvent(x: number, y: number, dragListener: DragListener, componentItem: ComponentItem) {
-        // if (!this._canRemoveComponent) {
-        //     dragListener.cancelDrag();
-        // } else {
-            if (this._componentDragStartEvent === undefined) {
-                throw new UnexpectedUndefinedError('HHTDSE22294');
-            } else {
-                this._componentDragStartEvent(x, y, dragListener, componentItem);
-            }
-        // }
+        if (this._componentDragStartEvent === undefined) {
+            throw new UnexpectedUndefinedError('HHTDSE22294');
+        } else {
+            this._componentDragStartEvent(x, y, dragListener, componentItem);
+        }
     }
 
     /** @internal */

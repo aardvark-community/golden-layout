@@ -109,7 +109,6 @@ export class Stack extends ComponentParentableItem {
 
         this._header = new Header(layoutManager,
             this, headerSettings,
-            config.isClosable && close !== false,
             () => this.getActiveComponentItem(),
             () => this.remove(),
             () => this.handlePopoutEvent(),
@@ -138,7 +137,7 @@ export class Stack extends ComponentParentableItem {
         this.element.appendChild(this._childElementContainer);
 
         this.setupHeaderPosition();
-        this._header.updateClosability();
+        this._header.updateButtons();
     }
 
     /** @internal */
@@ -187,7 +186,7 @@ export class Stack extends ComponentParentableItem {
             }
         }
 
-        this._header.updateClosability();
+        this._header.updateButtons();
         this.initContentItems();
     }
 
@@ -226,6 +225,8 @@ export class Stack extends ComponentParentableItem {
         if (this.focused || focus) {
             this.layoutManager.setFocusedComponentItem(componentItem, suppressFocusEvent);
         }
+
+        this._header.updateButtons();
     }
 
     /** @deprecated Use {@link (Stack:class).getActiveComponentItem} */
@@ -246,11 +247,6 @@ export class Stack extends ComponentParentableItem {
     override setFocusedValue(value: boolean): void {
         this._header.applyFocusedValue(value);
         super.setFocusedValue(value);
-    }
-
-    /** @internal */
-    setRowColumnClosable(value: boolean): void {
-        this._header.setRowColumnClosable(value);
     }
 
     newComponent(componentType: JsonValue, componentState?: JsonValue, title?: string, index?: number): ComponentItem {
@@ -302,7 +298,7 @@ export class Stack extends ComponentParentableItem {
             this._header.updateTabSizes();
             this.updateSize(false);
             contentItem.container.setBaseLogicalZIndex();
-            this._header.updateClosability();
+            this._header.updateButtons();
             this.emitStateChangedEvent();
             return index;
         }
@@ -331,7 +327,7 @@ export class Stack extends ComponentParentableItem {
         super.removeChild(componentItem, keepChild);
 
         if (!stackWillBeDeleted) {
-            this._header.updateClosability();
+            this._header.updateButtons();
         }
 
         this.emitStateChangedEvent();
@@ -481,7 +477,7 @@ export class Stack extends ComponentParentableItem {
          */
         if (contentItem.isComponent) {
             const itemConfig = ResolvedStackItemConfig.createDefault();
-            itemConfig.header = this.createHeaderConfig();
+            itemConfig.header = (contentItem as ComponentItem).headerConfig;
             const stack = this.layoutManager.createAndInitContentItem(itemConfig, this);
             stack.addChild(contentItem);
             contentItem = stack;
