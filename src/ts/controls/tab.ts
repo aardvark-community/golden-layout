@@ -81,6 +81,7 @@ export class Tab {
 
         if (_componentItem.isClosable) {
             this._closeElement.style.display = '';
+            this.element.classList.add(DomConstants.ClassName.Closable);
         } else {
             this._closeElement.style.display = 'none';
         }

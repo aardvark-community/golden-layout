@@ -125,7 +125,6 @@ $height6: 15px; // Appears 1 time
     height: $height2;
     margin-top: 1px;
     padding: 0px 10px 5px;
-    padding-right: 25px;
     position: relative;
     touch-action: none;
 
@@ -160,6 +159,10 @@ $height6: 15px; // Appears 1 time
       right: 0;
       text-align: center;
     }
+  }
+
+  .lm_closable.lm_tab {
+    padding-right: 25px;
   }
 }
 
