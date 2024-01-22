@@ -137,7 +137,6 @@ export class Stack extends ComponentParentableItem {
         this.element.appendChild(this._childElementContainer);
 
         this.setupHeaderPosition();
-        this._header.updateButtons();
     }
 
     /** @internal */
@@ -186,7 +185,6 @@ export class Stack extends ComponentParentableItem {
             }
         }
 
-        this._header.updateButtons();
         this.initContentItems();
     }
 
@@ -225,8 +223,6 @@ export class Stack extends ComponentParentableItem {
         if (this.focused || focus) {
             this.layoutManager.setFocusedComponentItem(componentItem, suppressFocusEvent);
         }
-
-        this._header.updateButtons();
     }
 
     /** @deprecated Use {@link (Stack:class).getActiveComponentItem} */
@@ -298,7 +294,6 @@ export class Stack extends ComponentParentableItem {
             this._header.updateTabSizes();
             this.updateSize(false);
             contentItem.container.setBaseLogicalZIndex();
-            this._header.updateButtons();
             this.emitStateChangedEvent();
             return index;
         }
@@ -325,10 +320,6 @@ export class Stack extends ComponentParentableItem {
         this._header.removeTab(componentItem);
 
         super.removeChild(componentItem, keepChild);
-
-        if (!stackWillBeDeleted) {
-            this._header.updateButtons();
-        }
 
         this.emitStateChangedEvent();
     }

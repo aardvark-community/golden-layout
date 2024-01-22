@@ -47,6 +47,8 @@ export class Header extends EventEmitter {
     private readonly _touchStartListener = (ev: TouchEvent) => this.onTouchStart(ev);
     /** @internal */
     private readonly _documentMouseUpListener: (this: void) => void;
+    /** @internal */
+    private readonly _layoutStateListener = () => this.onLayoutChanged();
 
     /** @internal */
     private _side: Side;
@@ -156,7 +158,8 @@ export class Header extends EventEmitter {
         this._closeButton = new HeaderButton(this, this._closeLabel, DomConstants.ClassName.Close, () => closeEvent());
 
         this.processTabDropdownActiveChanged();
-        this.updateButtons();
+
+        this.layoutManager.addEventListener('stateChanged', this._layoutStateListener);
     }
 
     /**
@@ -177,6 +180,7 @@ export class Header extends EventEmitter {
         this._tabsContainer.destroy();
 
         globalThis.document.removeEventListener('mouseup', this._documentMouseUpListener);
+        this.layoutManager.removeEventListener('stateChanged', this._layoutStateListener);
         this._element.remove();
     }
 
@@ -214,7 +218,7 @@ export class Header extends EventEmitter {
      * Updates the visibility of the header buttons.
      * @internal
      */
-    updateButtons(): void {
+    private updateButtons(): void {
         const activeComponentItem = this._getActiveComponentItemEvent();
         
         // Close button is only visible if all items of the stack are closable
@@ -229,12 +233,21 @@ export class Header extends EventEmitter {
         // If popoutWholeStack = true, the button is visible if this is true for every item.
         let popout: boolean;
 
+        // Also we want to prevent popping out if that would leave us with an empty layout.
+        let isLast = true;
+        let curr = this.parent.parent;
+        while (isLast && curr !== null && curr.isInitialised) {
+            isLast = curr.contentItems.length === 1;
+            curr = curr.parent;
+        }
+
         if (this._layoutManager.layoutConfig.settings.popoutWholeStack) {
             const allPopoutable = this.tabs.every(tab => tab.componentItem.headerConfig?.popout !== false) 
-            popout = allClosable && allPopoutable;
+            popout = !isLast && allClosable && allPopoutable;
         } else {
+            isLast &&= this.tabs.length === 1;
             const closable = activeComponentItem?.isClosable !== false;
-            popout = closable && (activeComponentItem?.headerConfig?.popout !== false);
+            popout = !isLast && closable && (activeComponentItem?.headerConfig?.popout !== false);
         }
 
         setElementDisplayVisibility(this._popoutButton.element, popout);
@@ -376,6 +389,11 @@ export class Header extends EventEmitter {
         if (event.target === this._element) {
             this.notifyTouchStart(event);
         }
+    }
+
+    /** @internal */
+    private onLayoutChanged() {
+        this.updateButtons();
     }
 
     /** @internal */

@@ -712,8 +712,6 @@ export class Header extends EventEmitter {
     // (undocumented)
     get tabsContainerElement(): HTMLElement;
     // @internal
-    updateButtons(): void;
-    // @internal
     updateTabSizes(): void;
 }
 
