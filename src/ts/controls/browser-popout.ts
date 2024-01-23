@@ -253,6 +253,7 @@ export class BrowserPopout extends EventEmitter {
             throw new UnexpectedNullError('BPCR01844');
         } else {
             if (this._popoutWindow.__glInstance && this._popoutWindow.__glInstance.isInitialised) {
+                this._popoutWindow.__glInstance.parentLayout = this._layoutManager;
                 this.onInitialised();
                 if (this._checkReadyInterval !== undefined) {
                     clearInterval(this._checkReadyInterval);

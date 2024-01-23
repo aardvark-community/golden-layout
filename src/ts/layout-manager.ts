@@ -106,6 +106,8 @@ export abstract class LayoutManager extends EventEmitter {
     private _sizeInvalidationBeginCount = 0;
     /** @internal */
     protected _constructorOrSubWindowLayoutConfig: LayoutConfig | undefined; // protected for backwards compatibility
+    /** @internal */
+    private _parentLayout: LayoutManager | undefined;
 
     /** @internal */
     private _resizeObserver = new ResizeObserver(() => this.handleContainerResize());
@@ -161,6 +163,8 @@ export abstract class LayoutManager extends EventEmitter {
     /** @deprecated indicates deprecated constructor use */
     get deprecatedConstructor(): boolean { return !this.isSubWindow && this._constructorOrSubWindowLayoutConfig !== undefined; }
 
+    get parentLayout(): LayoutManager | undefined { return this._parentLayout; }
+    set parentLayout(value: LayoutManager | undefined) { this._parentLayout = value; }
 
     /**
     * @param container - A Dom HTML element. Defaults to body
@@ -867,6 +871,11 @@ export abstract class LayoutManager extends EventEmitter {
 
     /** @internal */
     createPopoutFromPopoutLayoutConfig(config: ResolvedPopoutLayoutConfig): BrowserPopout {
+        // If this is already a popout, let the parent layout manager handle the new one.
+        if (this._parentLayout !== undefined) {
+            return this._parentLayout.createPopoutFromPopoutLayoutConfig(config);
+        }
+
         const configWindow = config.window;
         const initialWindow: Rect = {
             left: configWindow.left ?? (globalThis.screenX || globalThis.screenLeft + 20),

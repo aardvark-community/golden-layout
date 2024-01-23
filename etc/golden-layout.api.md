@@ -1144,6 +1144,9 @@ export abstract class LayoutManager extends EventEmitter {
     newItemAtLocation(itemConfig: RowOrColumnItemConfig | StackItemConfig | ComponentItemConfig, locationSelectors?: readonly LayoutManager.LocationSelector[]): ContentItem | undefined;
     // (undocumented)
     get openPopouts(): BrowserPopout[];
+    // (undocumented)
+    get parentLayout(): LayoutManager | undefined;
+    set parentLayout(value: LayoutManager | undefined);
     removeDragSource(dragSource: DragSource): void;
     resizeDebounceExtendedWhenPossible: boolean;
     resizeDebounceInterval: number;
