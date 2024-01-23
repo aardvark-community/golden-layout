@@ -200,6 +200,8 @@ export class BrowserPopout extends EventEmitter {
          * The options as used in the window.open string
          */
         const features = this.serializeWindowFeatures({
+            left: this._initialWindowSize.left,
+            top: this._initialWindowSize.top,
             width: this._initialWindowSize.width,
             height: this._initialWindowSize.height,
             innerWidth: this._initialWindowSize.width,
@@ -224,10 +226,10 @@ export class BrowserPopout extends EventEmitter {
             }
         }
 
-        this._popoutWindow.addEventListener('load', () => {
-            this.positionWindow();
-
+        this._popoutWindow.addEventListener('load', () => {    
             if (this._popoutWindow) {
+                this._popoutWindow.focus();
+
                 this._popoutWindow.addEventListener('beforeunload', () => {
                     if (this._layoutManager.layoutConfig.settings.popInOnClose && !this._preventPopInOnClose) {
                         this.popIn();
@@ -307,20 +309,6 @@ export class BrowserPopout extends EventEmitter {
         }
 
         return url.toString();
-    }
-
-    /**
-     * Move the newly created window roughly to
-     * where the component used to be.
-     * @internal
-     */
-    private positionWindow() {
-        if (this._popoutWindow === null) {
-            throw new Error('BrowserPopout.positionWindow: null popoutWindow');
-        } else {
-            this._popoutWindow.moveTo(this._initialWindowSize.left, this._initialWindowSize.top);
-            this._popoutWindow.focus();
-        }
     }
 
     /**
