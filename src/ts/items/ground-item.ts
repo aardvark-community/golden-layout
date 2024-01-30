@@ -29,7 +29,7 @@ export class GroundItem extends ComponentParentableItem {
         this._containerElement = containerElement;
 
         // insert before any pre-existing content elements
-        let before = null;
+        let before: ChildNode | null = null;
         while (true) {
             const prev: ChildNode | null =
                 before ? before.previousSibling : this._containerElement.lastChild;

@@ -328,7 +328,7 @@ export class RowOrColumn extends ContentItem {
         }
 
         let totalAssigned = 0;
-        const itemSizes = [];
+        const itemSizes: number[] = [];
 
         for (let i = 0; i < this.contentItems.length; i++) {
             const contentItem = this.contentItems[i];

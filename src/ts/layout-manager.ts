@@ -1139,7 +1139,7 @@ export abstract class LayoutManager extends EventEmitter {
 
     /** @internal */
     getArea(x: number, y: number): ContentItem.Area | null {
-        let matchingArea = null;
+        let matchingArea: ContentItem.Area | null = null;
         let smallestSurface = Infinity;
 
         for (let i = 0; i < this._itemAreas.length; i++) {
