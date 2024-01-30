@@ -45,6 +45,11 @@
   user-select: none;
 }
 
+// Disable pointer events of iframes while dragging
+.lm_dragging iframe, .lm_pointer_tracking iframe {
+  pointer-events: none;
+}
+
 // If a specific Pane is maximized
 .lm_maximised {
   position: absolute;

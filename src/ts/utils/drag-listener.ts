@@ -79,7 +79,6 @@ export class DragListener extends EventEmitter {
         this._oDocument.addEventListener('pointermove', this._pointerMoveEventListener);
         this._oDocument.addEventListener('pointerup', this._pointerUpEventListener, { passive: true });
         this._eBody.classList.add(DomConstants.ClassName.PointerTracking);
-        this._eElement.classList.add(DomConstants.ClassName.PointerTracking);
         this._pointerTracking = true;
 
         this._timeout = setTimeout(
@@ -135,7 +134,6 @@ export class DragListener extends EventEmitter {
         if (this._dragging === true) {
             this._eBody.classList.remove(DomConstants.ClassName.Dragging);
             this._eElement.classList.remove(DomConstants.ClassName.Dragging);
-            this._oDocument.querySelector('iframe')?.style.setProperty('pointer-events', '');
             this._dragging = false;
             this.emit('dragStop', dragEvent);
         }
@@ -146,7 +144,6 @@ export class DragListener extends EventEmitter {
             this._oDocument.removeEventListener('pointermove', this._pointerMoveEventListener);
             this._oDocument.removeEventListener('pointerup', this._pointerUpEventListener);
             this._eBody.classList.remove(DomConstants.ClassName.PointerTracking);
-            this._eElement.classList.remove(DomConstants.ClassName.PointerTracking);
             this._pointerTracking = false;
         }    
     }
@@ -159,7 +156,6 @@ export class DragListener extends EventEmitter {
         this._dragging = true;
         this._eBody.classList.add(DomConstants.ClassName.Dragging);
         this._eElement.classList.add(DomConstants.ClassName.Dragging);
-        this._oDocument.querySelector('iframe')?.style.setProperty('pointer-events', 'none');
         this.emit('dragStart', this._nOriginalX, this._nOriginalY);
     }
 
