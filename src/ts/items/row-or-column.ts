@@ -540,7 +540,7 @@ export class RowOrColumn extends ContentItem {
      */
     private createSplitter(index: number): Splitter {
         const splitter = new Splitter(this._isColumn, this._splitterSize, this._splitterGrabSize);
-        splitter.on('drag', (offsetX, offsetY) => this.onSplitterDrag(splitter, offsetX, offsetY));
+        splitter.on('drag', (event) => this.onSplitterDrag(splitter, event.offsetX, event.offsetY));
         splitter.on('dragStop', () => this.onSplitterDragStop(splitter));
         splitter.on('dragStart', () => this.onSplitterDragStart(splitter));
         this._splitter.splice(index, 0, splitter);

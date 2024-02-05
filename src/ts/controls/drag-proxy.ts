@@ -4,12 +4,12 @@ import { ContentItem } from '../items/content-item';
 import { Stack } from '../items/stack';
 import { LayoutManager } from '../layout-manager';
 import { DomConstants } from '../utils/dom-constants';
-import { DragListener } from '../utils/drag-listener';
 import { EventEmitter } from '../utils/event-emitter';
 import { Side } from '../utils/types';
 import {
     numberToPixels
 } from '../utils/utils';
+import { DragAction } from './drag-action';
 
 /**
  * This class creates a temporary container
@@ -18,34 +18,41 @@ import {
  * @internal
  */
 export class DragProxy extends EventEmitter {
-    private _area: ContentItem.Area | null = null;
-    private _lastValidArea: ContentItem.Area | null = null;
     private _minX: number;
     private _minY: number;
     private _maxX: number;
     private _maxY: number;
+    private _outerWidth: number;
+    private _outerHeight: number;
     private _sided: boolean;
     private _element: HTMLElement;
     private _proxyContainerElement: HTMLElement;
     private _componentItemFocused: boolean;
 
+    private readonly _dragEventHandler = (event: EventEmitter.DragEvent) => this.onDrag(event.pageX, event.pageY);
+    private readonly _dragStopEventHandler = () => this.onDragStop();
+
     get element(): HTMLElement { return this._element; }
+    get outerWidth(): number { return this._outerWidth; }
+    get outerHeight(): number { return this._outerHeight; }
+    get componentItem(): ComponentItem { return this._componentItem; }
+    get layoutManager(): LayoutManager { return this._action.layoutManager; }
 
     /**
      * @param x - The initial x position
      * @param y - The initial y position
      * @internal
      */
-    constructor(x: number, y: number,
-        private readonly _dragListener: DragListener,
-        private readonly _layoutManager: LayoutManager,
+    constructor(
+        private readonly _action: DragAction,
         private readonly _componentItem: ComponentItem,
-        private readonly _originalParent: ContentItem) {
-
+        private readonly _originalParent: ContentItem,
+        x: number, y: number
+    ) {
         super();
 
-        this._dragListener.on('drag', (offsetX, offsetY, event) => this.onDrag(offsetX, offsetY, event));
-        this._dragListener.on('dragStop', () => this.onDrop());
+        this._action.on('drag', this._dragEventHandler);
+        this._action.on('dragStop', this._dragStopEventHandler)
 
         this.createDragProxyElements(x, y);
 
@@ -58,14 +65,17 @@ export class DragProxy extends EventEmitter {
         if (this._componentItemFocused) {
             this._componentItem.blur();
         }
-        this._componentItem.parent.removeChild(this._componentItem, true);
+
+        if (this._componentItem.parent.contentItems.includes(this._componentItem)) {
+            this._componentItem.parent.removeChild(this._componentItem, true);
+        }
 
         this.setDimensions();
 
         document.body.appendChild(this._element);
 
         this.determineMinMaxXY();
-        this._layoutManager.calculateItemAreas();
+        this.layoutManager.calculateItemAreas();
         this.setDropPosition(x, y);
     }
 
@@ -106,7 +116,7 @@ export class DragProxy extends EventEmitter {
     }
 
     private determineMinMaxXY(): void {
-        const groundItem = this._layoutManager.groundItem;
+        const groundItem = this.layoutManager.groundItem;
         if (groundItem === undefined) {
             throw new UnexpectedUndefinedError('DPDMMXY73109');
         } else {
@@ -124,22 +134,15 @@ export class DragProxy extends EventEmitter {
      * still within the valid drag area and calls the layoutManager to highlight the
      * current drop area
      *
-     * @param offsetX - The difference from the original x position in px
-     * @param offsetY - The difference from the original y position in px
-     * @param event -
      * @internal
      */
-    private onDrag(offsetX: number, offsetY: number, event: PointerEvent) {
-
-        const x = event.pageX;
-        const y = event.pageY;
-
+    private onDrag(x: number, y: number) {
         this.setDropPosition(x, y);
         this._componentItem.drag();
     }
 
     /**
-     * Sets the target position, highlighting the appropriate area
+     * Sets the target position
      *
      * @param x - The x position in px
      * @param y - The y position in px
@@ -147,7 +150,7 @@ export class DragProxy extends EventEmitter {
      * @internal
      */
     private setDropPosition(x: number, y: number): void {
-        if (this._layoutManager.layoutConfig.settings.constrainDragToContainer) {
+        if (this.layoutManager.layoutConfig.settings.constrainDragToContainer) {
             if (x <= this._minX) {
                 x = Math.ceil(this._minX);
             } else if (x >= this._maxX) {
@@ -163,11 +166,10 @@ export class DragProxy extends EventEmitter {
 
         this._element.style.left = numberToPixels(x);
         this._element.style.top = numberToPixels(y);
-        this._area = this._layoutManager.getArea(x, y);
+        const area = this.layoutManager.getArea(x, y);
 
-        if (this._area !== null) {
-            this._lastValidArea = this._area;
-            this._area.contentItem.highlightDropZone(x, y, this._area);
+        if (area !== null) {
+            this.emit('dragOver', x, y, area);
         }
     }
 
@@ -176,58 +178,53 @@ export class DragProxy extends EventEmitter {
      * and adds the child to it
      * @internal
      */
-    private onDrop(): void {
-        const dropTargetIndicator = this._layoutManager.dropTargetIndicator;
-        if (dropTargetIndicator === null) {
-            throw new UnexpectedNullError('DPOD30011');
-        } else {
-            dropTargetIndicator.hide();
-        }
-
+    private onDragStop(): void {
         this._componentItem.exitDragMode();
 
+        let area: ContentItem.Area | null = null;
+        let droppedComponentItem: ComponentItem | null = null;
+
+        const target = this._action.target;
+        if (target?.owner === this._action) {
+            area = target.area;
+        }
+
         /*
-         * Valid drop area found
+        * Valid drop area found
+        */
+        if (area !== null) {
+            droppedComponentItem = this._componentItem;
+            const newParentContentItem = area.contentItem;
+            newParentContentItem.onDrop(droppedComponentItem, area);
+
+        /**
+         * No valid drop area found during the duration of the drag. Return
+         * content item to its original position if a original parent is provided.
+         * (Which is not the case if the drag had been initiated by createDragSource).
+         * Only do this if the proxy belongs to the action that initiated the drag.
          */
-        let droppedComponentItem: ComponentItem | undefined;
-        if (this._area !== null) {
-            droppedComponentItem = this._componentItem;
-            this._area.contentItem.onDrop(droppedComponentItem, this._area);
-
-            /**
-             * No valid drop area available at present, but one has been found before.
-             * Use it
-             */
-        } else if (this._lastValidArea !== null) {
-            droppedComponentItem = this._componentItem;
-            const newParentContentItem = this._lastValidArea.contentItem;
-            newParentContentItem.onDrop(droppedComponentItem, this._lastValidArea);
-
-            /**
-             * No valid drop area found during the duration of the drag. Return
-             * content item to its original position if a original parent is provided.
-             * (Which is not the case if the drag had been initiated by createDragSource)
-             */
-        } else if (this._originalParent) {
+        } else if (this._originalParent && target === null && this._action.parent === null) {
             droppedComponentItem = this._componentItem;
             this._originalParent.addChild(droppedComponentItem);
 
-            /**
-             * The drag didn't ultimately end up with adding the content item to
-             * any container. In order to ensure clean up happens, destroy the
-             * content item.
-             */
+        /**
+         * The drag didn't ultimately end up with adding the content item to
+         * any container. In order to ensure clean up happens, destroy the
+         * content item.
+         */
         } else {
             this._componentItem.destroy(); // contentItem children are now destroyed as well
         }
 
-        this._element.remove();
+        this.layoutManager.emit('itemDropped', this._componentItem);
 
-        this._layoutManager.emit('itemDropped', this._componentItem);
-
-        if (this._componentItemFocused && droppedComponentItem !== undefined) {
-            droppedComponentItem.focus();
+        if (this._componentItemFocused) {
+            droppedComponentItem?.focus();
         }
+
+        this._action.off('drag', this._dragEventHandler);
+        this._action.off('dragStop', this._dragStopEventHandler)
+        this._element.remove();
     }
 
     /**
@@ -235,7 +232,7 @@ export class DragProxy extends EventEmitter {
      * @internal
      */
     private setDimensions() {
-        const dimensions = this._layoutManager.layoutConfig.dimensions;
+        const dimensions = this.layoutManager.layoutConfig.dimensions;
         if (dimensions === undefined) {
             throw new Error('DragProxy.setDimensions: dimensions undefined');
         }
@@ -246,7 +243,9 @@ export class DragProxy extends EventEmitter {
             throw new Error('DragProxy.setDimensions: width and/or height undefined');
         }
 
-        const headerHeight = this._layoutManager.layoutConfig.header.show === false ? 0 : dimensions.headerHeight;
+        this._outerWidth = width;
+        this._outerHeight = height;
+        const headerHeight = this.layoutManager.layoutConfig.header.show === false ? 0 : dimensions.headerHeight;
         this._element.style.width = numberToPixels(width);
         this._element.style.height = numberToPixels(height)
         width -= (this._sided ? headerHeight : 0);

@@ -101,9 +101,9 @@ export class DragListener extends EventEmitter {
         }
     }
 
-    private processDragMove(dragEvent: PointerEvent) {
-        this._nX = dragEvent.pageX - this._nOriginalX;
-        this._nY = dragEvent.pageY - this._nOriginalY;
+    private processDragMove(event: PointerEvent) {
+        this._nX = event.pageX - this._nOriginalX;
+        this._nY = event.pageY - this._nOriginalY;
 
         if (this._dragging === false) {
             if (
@@ -115,7 +115,14 @@ export class DragListener extends EventEmitter {
         }
 
         if (this._dragging) {
-            this.emit('drag', this._nX, this._nY, dragEvent);
+            this.emit('drag', {
+                pageX: event.pageX,
+                pageY: event.pageY,
+                screenX: event.screenX,
+                screenY: event.screenY,
+                offsetX: this._nX,
+                offsetY: this._nY
+            });
         }
     }
 

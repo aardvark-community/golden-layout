@@ -1,12 +1,12 @@
 import { ComponentItemConfig as ConfigComponentItemConfig } from '../config/config'; // remove alias in version 3
 import { ResolvedRowOrColumnItemConfig } from "../config/resolved-config";
-import { UnexpectedNullError } from '../errors/internal-error';
+import { UnexpectedNullError, UnexpectedUndefinedError } from '../errors/internal-error';
 import { ComponentItem } from '../items/component-item';
 import { GroundItem } from '../items/ground-item';
 import { LayoutManager } from '../layout-manager';
 import { DragListener } from '../utils/drag-listener';
 import { JsonValue } from '../utils/types';
-import { DragProxy } from './drag-proxy';
+import { DragAction } from './drag-action';
 
 /**
  * Allows for any DOM item to create a component on drag
@@ -115,13 +115,18 @@ export class DragSource {
         if (this._dragListener === null) {
             throw new UnexpectedNullError('DSODSD66746');
         } else {
-            const dragProxy = new DragProxy(x, y, this._dragListener, this._layoutManager, componentItem , this._dummyGroundContentItem);
+            const action = DragAction.start(this._layoutManager, this._dragListener, componentItem, this._dummyGroundContentItem, x, y);
 
             const transitionIndicator = this._layoutManager.transitionIndicator;
             if (transitionIndicator === null) {
                 throw new UnexpectedNullError('DSODST66746');
             } else {
-                transitionIndicator.transitionElements(this._element, dragProxy.element);
+                const proxyElement = action.proxy?.element;
+                if (proxyElement === undefined) {
+                    throw new UnexpectedUndefinedError('DSODST66747');
+                }
+
+                transitionIndicator.transitionElements(this._element, proxyElement);
             }
         }
     }

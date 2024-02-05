@@ -56,7 +56,7 @@ export interface Rect {
     height: number,
 }
 
-/** @internal */
+/** @public */
 export interface AreaLinkedRect {
     x1: number, // left
     x2: number, // nextLeft

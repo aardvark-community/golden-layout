@@ -10,9 +10,7 @@ export class ApiError extends ExternalError {
     constructor(message: string);
 }
 
-// Warning: (ae-internal-missing-underscore) The name "AreaLinkedRect" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
+// @public (undocumented)
 export interface AreaLinkedRect {
     // (undocumented)
     x1: number;
@@ -368,7 +366,7 @@ export abstract class ContentItem extends EventEmitter {
 
 // @public (undocumented)
 export namespace ContentItem {
-    // @internal (undocumented)
+    // (undocumented)
     export interface Area extends AreaLinkedRect {
         // (undocumented)
         contentItem: ContentItem;
@@ -471,7 +469,24 @@ export namespace EventEmitter {
     // (undocumented)
     export type ComponentItemParam = [ComponentItem];
     // (undocumented)
-    export type DragParams = [offsetX: number, offsetY: number, event: PointerEvent];
+    export interface DragEvent {
+        // (undocumented)
+        readonly offsetX: number;
+        // (undocumented)
+        readonly offsetY: number;
+        // (undocumented)
+        readonly pageX: number;
+        // (undocumented)
+        readonly pageY: number;
+        // (undocumented)
+        readonly screenX: number;
+        // (undocumented)
+        readonly screenY: number;
+    }
+    // (undocumented)
+    export type DragOverParams = [x: number, y: number, area: ContentItem.Area];
+    // (undocumented)
+    export type DragParams = [EventEmitter.DragEvent];
     // (undocumented)
     export type DragStartParams = [originalX: number, originalY: number];
     // (undocumented)
@@ -496,6 +511,8 @@ export namespace EventEmitter {
         "destroy": NoParams;
         // (undocumented)
         "drag": DragParams;
+        // (undocumented)
+        "dragOver": DragOverParams;
         // (undocumented)
         "dragStart": DragStartParams;
         // (undocumented)
@@ -1124,6 +1141,8 @@ export abstract class LayoutManager extends EventEmitter {
     // @internal
     init(): void;
     // (undocumented)
+    get instances(): LayoutManager[];
+    // (undocumented)
     get isInitialised(): boolean;
     // (undocumented)
     readonly isSubWindow: boolean;
@@ -1145,8 +1164,8 @@ export abstract class LayoutManager extends EventEmitter {
     // (undocumented)
     get openPopouts(): BrowserPopout[];
     // (undocumented)
-    get parentLayout(): LayoutManager | undefined;
-    set parentLayout(value: LayoutManager | undefined);
+    get parent(): LayoutManager | null;
+    set parent(value: LayoutManager | null);
     removeDragSource(dragSource: DragSource): void;
     resizeDebounceExtendedWhenPossible: boolean;
     resizeDebounceInterval: number;

@@ -10,7 +10,7 @@ import {
 } from "./config/resolved-config";
 import { ComponentContainer } from './container/component-container';
 import { BrowserPopout } from './controls/browser-popout';
-import { DragProxy } from './controls/drag-proxy';
+import { DragAction } from './controls/drag-action';
 import { DragSource } from './controls/drag-source';
 import { DropTargetIndicator } from './controls/drop-target-indicator';
 import { TransitionIndicator } from './controls/transition-indicator';
@@ -107,7 +107,7 @@ export abstract class LayoutManager extends EventEmitter {
     /** @internal */
     protected _constructorOrSubWindowLayoutConfig: LayoutConfig | undefined; // protected for backwards compatibility
     /** @internal */
-    private _parentLayout: LayoutManager | undefined;
+    private _parent: LayoutManager | null = null;
 
     /** @internal */
     private _resizeObserver = new ResizeObserver(() => this.handleContainerResize());
@@ -163,8 +163,22 @@ export abstract class LayoutManager extends EventEmitter {
     /** @deprecated indicates deprecated constructor use */
     get deprecatedConstructor(): boolean { return !this.isSubWindow && this._constructorOrSubWindowLayoutConfig !== undefined; }
 
-    get parentLayout(): LayoutManager | undefined { return this._parentLayout; }
-    set parentLayout(value: LayoutManager | undefined) { this._parentLayout = value; }
+    get parent(): LayoutManager | null { return this._parent; }
+    set parent(value: LayoutManager | null) { this._parent = value; }
+
+    get instances(): LayoutManager[] {
+        const result: LayoutManager[] = [];
+
+        const root = this.parent ?? this;
+        result.push(root);
+
+        for (let popout of this.openPopouts) {
+            const child = popout.getGlInstance();
+            result.push(child);
+        }
+
+        return result;
+    }
 
     /**
     * @param container - A Dom HTML element. Defaults to body
@@ -872,8 +886,8 @@ export abstract class LayoutManager extends EventEmitter {
     /** @internal */
     createPopoutFromPopoutLayoutConfig(config: ResolvedPopoutLayoutConfig): BrowserPopout {
         // If this is already a popout, let the parent layout manager handle the new one.
-        if (this._parentLayout !== undefined) {
-            return this._parentLayout.createPopoutFromPopoutLayoutConfig(config);
+        if (this._parent !== null) {
+            return this._parent.createPopoutFromPopoutLayoutConfig(config);
         }
 
         const configWindow = config.window;
@@ -956,15 +970,19 @@ export abstract class LayoutManager extends EventEmitter {
     }
 
     /** @internal */
+    private startExternalComponentDrag(parent: DragAction) {
+        DragAction.spawn(this, parent);
+    }
+
+    /** @internal */
     startComponentDrag(x: number, y: number, dragListener: DragListener, componentItem: ComponentItem, stack: Stack): void {
-        new DragProxy(
-            x,
-            y,
-            dragListener,
-            this,
-            componentItem,
-            stack
-        );
+        const action = DragAction.start(this, dragListener, componentItem, stack, x, y);
+
+        for (let lm of this.instances) {
+            if (lm !== this) {
+                lm.startExternalComponentDrag(action);
+            }
+        }
     }
 
     /**

@@ -1,6 +1,7 @@
 import { BrowserPopout } from '../controls/browser-popout';
 import { Tab } from '../controls/tab';
 import { ComponentItem } from '../items/component-item';
+import { ContentItem } from '../items/content-item';
 
 /**
  * A generic and very fast EventEmitter implementation. On top of emitting the actual event it emits an
@@ -181,6 +182,7 @@ export namespace EventEmitter {
         "closed": NoParams;
         "destroy": NoParams;
         "drag": DragParams;
+        "dragOver": DragOverParams;
         "dragStart": DragStartParams;
         "dragStop": DragStopParams;
         "hide": NoParams;
@@ -221,10 +223,20 @@ export namespace EventEmitter {
     export type StringParam = [string];
     export type DragStartParams = [originalX: number, originalY: number];
     export type DragStopParams = [event: PointerEvent | undefined];
-    export type DragParams = [offsetX: number, offsetY: number, event: PointerEvent];
+    export type DragParams = [EventEmitter.DragEvent];
+    export type DragOverParams = [x: number, y: number, area: ContentItem.Area];
     export type BeforeComponentReleaseParams = [component: unknown];
     export type ClickBubblingEventParam = [ClickBubblingEvent];
     export type TouchStartBubblingEventParam = [TouchStartBubblingEvent];
+
+    export interface DragEvent {
+        readonly pageX: number;
+        readonly pageY: number;
+        readonly screenX: number;
+        readonly screenY: number;
+        readonly offsetX: number;
+        readonly offsetY: number;
+    }
 
     export class BubblingEvent {
         /** @internal */
