@@ -1,6 +1,6 @@
 import { DomConstants } from '../utils/dom-constants';
 import { AreaLinkedRect } from '../utils/types';
-import { numberToPixels, setElementDisplayVisibility } from '../utils/utils';
+import { numberToPixels } from '../utils/utils';
 
 /** @internal */
 export class DropTargetIndicator {
@@ -24,12 +24,12 @@ export class DropTargetIndicator {
     highlightArea(area: AreaLinkedRect, margin: number): void {
         this._element.style.left = numberToPixels(area.x1 + margin);
         this._element.style.top = numberToPixels(area.y1 + margin);
-        this._element.style.width = numberToPixels(area.x2 - area.x1 - margin);
-        this._element.style.height = numberToPixels(area.y2 - area.y1 - margin);
-        this._element.style.display = 'block';
+        this._element.style.width = numberToPixels(area.x2 - area.x1 - margin - 1);
+        this._element.style.height = numberToPixels(area.y2 - area.y1 - margin - 1);
+        this._element.style.visibility = 'visible';
     }
 
     hide(): void {
-        setElementDisplayVisibility(this._element, false);
+        this._element.style.visibility = 'hidden';
     }
 }

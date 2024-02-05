@@ -378,10 +378,10 @@ $height6: 15px; // Appears 1 time
 
 // Placeholder Container of target position
 .lm_dropTargetIndicator {
-  display: none;
+  visibility: hidden;
   position: absolute;
   z-index: 30;
-  transition: all 200ms ease;
+  transition: all 200ms ease, visibility 0ms linear;
 
   // Inner Placeholder
   .lm_inner {
