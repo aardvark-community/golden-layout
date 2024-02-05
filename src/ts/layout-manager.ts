@@ -287,8 +287,18 @@ export abstract class LayoutManager extends EventEmitter {
         this.adjustColumnsResponsive();
         this.emit('initialised');
 
-        if (this.isSubWindow && this._constructorOrSubWindowLayoutConfig !== undefined) {
-            this.loadLayout(this._constructorOrSubWindowLayoutConfig);
+        let layout = this._constructorOrSubWindowLayoutConfig;
+
+        if (this.isSubWindow && layout !== undefined) {
+            // Wrap in stack for multiwindow drag-and-drop to work properly
+            if (layout.root?.type == ItemType.component) {
+                layout.root = {
+                    type: ItemType.stack,
+                    content: [ layout.root ],
+                };
+            }
+
+            this.loadLayout(layout);
         }
     }
 

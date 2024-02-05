@@ -4,7 +4,7 @@ import { UnexpectedNullError, UnexpectedUndefinedError } from '../errors/interna
 import { ContentItem } from '../items/content-item';
 import { LayoutManager } from '../layout-manager';
 import { EventEmitter } from '../utils/event-emitter';
-import { Rect } from '../utils/types';
+import { Rect, ItemType } from '../utils/types';
 import { deepExtend, getErrorMessage, getUniqueId } from '../utils/utils';
 
 /**
@@ -148,7 +148,7 @@ export class BrowserPopout extends EventEmitter {
         */
         const glInstanceLayoutConfig = this.getGlInstance().saveLayout();
         const copiedGlInstanceLayoutConfig = deepExtend({}, glInstanceLayoutConfig) as ResolvedLayoutConfig;
-        const copiedRoot = copiedGlInstanceLayoutConfig.root;
+        let copiedRoot = copiedGlInstanceLayoutConfig.root;
         if (copiedRoot === undefined) {
             throw new UnexpectedUndefinedError('BPPIR19998');
         }
@@ -169,6 +169,13 @@ export class BrowserPopout extends EventEmitter {
                 parentItem = groundItem;
             }
             index = 0;
+        }
+
+        // If the parent is a stack, we must unravel containers to find a component item.
+        if (parentItem.isStack) {
+            while (copiedRoot.type !== ItemType.component && copiedRoot.content.length === 1) {
+                copiedRoot = copiedRoot.content[0];
+            }
         }
 
         const newContentItem = this._layoutManager.createAndInitContentItem(copiedRoot, parentItem);
