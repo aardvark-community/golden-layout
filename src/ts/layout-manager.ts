@@ -1416,11 +1416,11 @@ export abstract class LayoutManager extends EventEmitter {
             documentElement.style.height = '100%';
             documentElement.style.margin = '0';
             documentElement.style.padding = '0';
-            documentElement.style.overflow = 'clip';
+            documentElement.style.overflow = 'hidden';
             bodyElement.style.height = '100%';
             bodyElement.style.margin = '0';
             bodyElement.style.padding = '0';
-            bodyElement.style.overflow = 'clip';
+            bodyElement.style.overflow = 'hidden';
         }
 
         this._containerElement = containerElement;

@@ -148,7 +148,6 @@ export class DragAction extends EventEmitter {
 
         this.target = new DragTarget(this, area);
         area.contentItem.highlightDropZone(x, y, area);
-        window.focus();
     }
 
     private onDragStop() {
