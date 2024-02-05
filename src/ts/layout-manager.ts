@@ -172,7 +172,7 @@ export abstract class LayoutManager extends EventEmitter {
         const root = this.parent ?? this;
         result.push(root);
 
-        for (let popout of this.openPopouts) {
+        for (let popout of root.openPopouts) {
             const child = popout.getGlInstance();
             result.push(child);
         }
