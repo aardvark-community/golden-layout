@@ -1011,6 +1011,12 @@ export abstract class LayoutManager extends EventEmitter {
         }
     }
 
+    /** @internal */
+    hideDropTargetIndicator() {
+        this.tabDropPlaceholder.remove();
+        this.dropTargetIndicator?.hide();
+    }
+
     /**
      * Programmatically focuses an item. This focuses the specified component item
      * and the item emits a focus event

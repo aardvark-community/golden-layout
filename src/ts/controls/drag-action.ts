@@ -22,10 +22,6 @@ class DragTarget {
     drop(item: ComponentItem) {
         this._area.contentItem.onDrop(item, this._area);
     }
-
-    hideTargetIndicator() {
-        this._owner.layoutManager.dropTargetIndicator?.hide();
-    }
 }
 
 /** @internal */
@@ -143,7 +139,7 @@ export class DragAction extends EventEmitter {
     private onDragOver(x: number, y: number, area: ContentItem.Area) {
         // If we already have a drop area but it is in a different window, hide the indicator.
         if (this.target !== null && this.target.owner !== this) {
-            this.target.hideTargetIndicator();
+            this.target.owner.layoutManager.hideDropTargetIndicator();
         }
 
         this.target = new DragTarget(this, area);
@@ -151,7 +147,7 @@ export class DragAction extends EventEmitter {
     }
 
     private onDragStop() {
-        this.layoutManager.dropTargetIndicator?.hide();
+        this.layoutManager.hideDropTargetIndicator();
         this.emit('dragStop', undefined);
 
         this._dragProxy?.off('dragOver', this._dragOverEventHandler);
