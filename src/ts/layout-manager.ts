@@ -124,6 +124,13 @@ export abstract class LayoutManager extends EventEmitter {
     beforeVirtualRectingEvent: LayoutManager.BeforeVirtualRectingEvent | undefined;
     afterVirtualRectingEvent: LayoutManager.AfterVirtualRectingEvent | undefined;
 
+    /**
+     * Moves the associated window to the front.
+     * Default implementation has no effect (can be set by Electron).
+     * @public 
+     */
+    moveWindowTop: (this: void) => void = () => {};
+
     get container(): HTMLElement { return this._containerElement; }
     get isInitialised(): boolean { return this._isInitialised; }
     get isDragging(): boolean { return document.body.classList.contains(DomConstants.ClassName.Dragging); }

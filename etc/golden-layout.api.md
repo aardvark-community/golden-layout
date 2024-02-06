@@ -1138,6 +1138,8 @@ export abstract class LayoutManager extends EventEmitter {
     get groundItem(): GroundItem | undefined;
     // (undocumented)
     get height(): number | null;
+    // @internal (undocumented)
+    hideDropTargetIndicator(): void;
     // @internal
     init(): void;
     // (undocumented)
@@ -1156,6 +1158,7 @@ export abstract class LayoutManager extends EventEmitter {
     get maximisedStack(): Stack | undefined;
     // @deprecated
     minifyConfig(config: ResolvedLayoutConfig): ResolvedLayoutConfig;
+    moveWindowTop: (this: void) => void;
     newComponent(componentType: JsonValue, componentState?: JsonValue, title?: string): ComponentItem;
     newComponentAtLocation(componentType: JsonValue, componentState?: JsonValue, title?: string, locationSelectors?: LayoutManager.LocationSelector[]): ComponentItem | undefined;
     newDragSource(element: HTMLElement, itemConfigCallback: () => (DragSource.ComponentItemConfig | ComponentItemConfig)): DragSource;
