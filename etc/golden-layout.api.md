@@ -1143,6 +1143,8 @@ export abstract class LayoutManager extends EventEmitter {
     // (undocumented)
     get instances(): LayoutManager[];
     // (undocumented)
+    get isDragging(): boolean;
+    // (undocumented)
     get isInitialised(): boolean;
     // (undocumented)
     readonly isSubWindow: boolean;

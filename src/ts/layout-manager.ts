@@ -126,6 +126,7 @@ export abstract class LayoutManager extends EventEmitter {
 
     get container(): HTMLElement { return this._containerElement; }
     get isInitialised(): boolean { return this._isInitialised; }
+    get isDragging(): boolean { return document.body.classList.contains(DomConstants.ClassName.Dragging); }
     /** @internal */
     get groundItem(): GroundItem | undefined { return this._groundItem; }
     /** @internal @deprecated use {@link (LayoutManager:class).groundItem} instead */
@@ -910,7 +911,22 @@ export abstract class LayoutManager extends EventEmitter {
 
         const browserPopout = new BrowserPopout(config, initialWindow, this);
 
-        browserPopout.on('initialised', () => this.emit('windowOpened', browserPopout));
+        browserPopout.on('initialised', () => {
+            const lm = browserPopout.getGlInstance();
+
+            // Close the popout when the last component item is destroyed.
+            const destroyIfEmpty = function () {
+                if (!lm.isDragging && lm.groundItem?.getAllComponentItems()?.length === 0) {
+                    browserPopout.close();
+                }
+            };
+
+            lm.on('itemDropped', destroyIfEmpty);
+            lm.on('itemDestroyed', destroyIfEmpty);
+
+            this.emit('windowOpened', browserPopout);
+        });
+
         browserPopout.on('closed', () => this.reconcilePopoutWindows());
 
         this._openPopouts.push(browserPopout);

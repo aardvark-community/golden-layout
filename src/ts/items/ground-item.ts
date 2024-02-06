@@ -301,6 +301,12 @@ export class GroundItem extends ComponentParentableItem {
         return result;
     }
 
+    getAllComponentItems(): ComponentItem[] {
+        const result: ContentItem[] = [];
+        this.deepFilterContentItems(this.contentItems, result, (item) => item.isComponent);
+        return <ComponentItem[]>result;
+    }
+
     getConfigMaximisedItems(): ContentItem[] {
         const result: ContentItem[] = [];
         this.deepFilterContentItems(this.contentItems, result, (item) => {

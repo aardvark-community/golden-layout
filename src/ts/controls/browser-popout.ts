@@ -150,7 +150,7 @@ export class BrowserPopout extends EventEmitter {
         const copiedGlInstanceLayoutConfig = deepExtend({}, glInstanceLayoutConfig) as ResolvedLayoutConfig;
         let copiedRoot = copiedGlInstanceLayoutConfig.root;
         if (copiedRoot === undefined) {
-            throw new UnexpectedUndefinedError('BPPIR19998');
+            return;
         }
         const groundItem = this._layoutManager.groundItem;
         if (groundItem === undefined) {
