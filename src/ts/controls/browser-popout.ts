@@ -1,7 +1,8 @@
-import { ResolvedLayoutConfig, ResolvedPopoutLayoutConfig } from '../config/resolved-config';
+import { ResolvedLayoutConfig, ResolvedPopoutLayoutConfig, ResolvedRowOrColumnItemConfig } from '../config/resolved-config';
 import { PopoutBlockedError } from '../errors/external-error';
 import { UnexpectedNullError, UnexpectedUndefinedError } from '../errors/internal-error';
 import { ContentItem } from '../items/content-item';
+import { RowOrColumn } from '../items/row-or-column';
 import { LayoutManager } from '../layout-manager';
 import { EventEmitter } from '../utils/event-emitter';
 import { Rect, ItemType } from '../utils/types';
@@ -168,13 +169,26 @@ export class BrowserPopout extends EventEmitter {
             } else {
                 parentItem = groundItem;
             }
-            index = 0;
+            index = parentItem.contentItems.length;
         }
 
-        // If the parent is a stack, we must unravel containers to find a component item.
-        if (parentItem.isStack) {
+        if (parentItem.isStack) {   
+            // Stacks can only hold component items -> try to find one by unraveling containers with a single child
             while (copiedRoot.type !== ItemType.component && copiedRoot.content.length === 1) {
                 copiedRoot = copiedRoot.content[0];
+            }
+
+            // Failed to find a component item, wrap the parent item and docked item in a row as siblings
+            if (copiedRoot.type !== ItemType.component) {
+                if (parentItem.parent === null) {
+                    throw new UnexpectedNullError('BPPIG34973');
+                }
+
+                const row = new RowOrColumn(false, this._layoutManager, ResolvedRowOrColumnItemConfig.createDefault('row'), parentItem.parent);
+                parentItem.parent.replaceChild(parentItem, row, false);
+                row.addChild(parentItem);
+                parentItem = row;
+                index = 1;
             }
         }
 
