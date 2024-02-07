@@ -10,7 +10,9 @@ export class ApiError extends ExternalError {
     constructor(message: string);
 }
 
-// @public (undocumented)
+// Warning: (ae-internal-missing-underscore) The name "AreaLinkedRect" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
 export interface AreaLinkedRect {
     // (undocumented)
     x1: number;
@@ -366,7 +368,7 @@ export abstract class ContentItem extends EventEmitter {
 
 // @public (undocumented)
 export namespace ContentItem {
-    // (undocumented)
+    // @internal (undocumented)
     export interface Area extends AreaLinkedRect {
         // (undocumented)
         contentItem: ContentItem;
@@ -484,8 +486,6 @@ export namespace EventEmitter {
         readonly screenY: number;
     }
     // (undocumented)
-    export type DragOverParams = [x: number, y: number, area: ContentItem.Area];
-    // (undocumented)
     export type DragParams = [EventEmitter.DragEvent];
     // (undocumented)
     export type DragStartParams = [originalX: number, originalY: number];
@@ -511,8 +511,6 @@ export namespace EventEmitter {
         "destroy": NoParams;
         // (undocumented)
         "drag": DragParams;
-        // (undocumented)
-        "dragOver": DragOverParams;
         // (undocumented)
         "dragStart": DragStartParams;
         // (undocumented)

@@ -29,9 +29,6 @@ export class DragProxy extends EventEmitter {
     private _proxyContainerElement: HTMLElement;
     private _componentItemFocused: boolean;
 
-    private readonly _dragEventHandler = (event: EventEmitter.DragEvent) => this.onDrag(event.pageX, event.pageY);
-    private readonly _dragStopEventHandler = () => this.onDragStop();
-
     get element(): HTMLElement { return this._element; }
     get outerWidth(): number { return this._outerWidth; }
     get outerHeight(): number { return this._outerHeight; }
@@ -50,9 +47,6 @@ export class DragProxy extends EventEmitter {
         x: number, y: number
     ) {
         super();
-
-        this._action.on('drag', this._dragEventHandler);
-        this._action.on('dragStop', this._dragStopEventHandler)
 
         this.createDragProxyElements(x, y);
 
@@ -136,9 +130,10 @@ export class DragProxy extends EventEmitter {
      *
      * @internal
      */
-    private onDrag(x: number, y: number) {
-        this.setDropPosition(x, y);
+    drag(x: number, y: number): ContentItem.Area | null {
+        const area = this.setDropPosition(x, y);
         this._componentItem.drag();
+        return area;
     }
 
     /**
@@ -149,7 +144,7 @@ export class DragProxy extends EventEmitter {
      *
      * @internal
      */
-    private setDropPosition(x: number, y: number): void {
+    private setDropPosition(x: number, y: number): ContentItem.Area | null {
         if (this.layoutManager.layoutConfig.settings.constrainDragToContainer) {
             if (x <= this._minX) {
                 x = Math.ceil(this._minX);
@@ -166,11 +161,7 @@ export class DragProxy extends EventEmitter {
 
         this._element.style.left = numberToPixels(x);
         this._element.style.top = numberToPixels(y);
-        const area = this.layoutManager.getArea(x, y);
-
-        if (area !== null) {
-            this.emit('dragOver', x, y, area);
-        }
+        return this.layoutManager.getArea(x, y);
     }
 
     /**
@@ -178,13 +169,13 @@ export class DragProxy extends EventEmitter {
      * and adds the child to it
      * @internal
      */
-    private onDragStop(): void {
+    drop(): void {
         this._componentItem.exitDragMode();
 
         let area: ContentItem.Area | null = null;
         let droppedComponentItem: ComponentItem | null = null;
 
-        const target = this._action.target;
+        const target = this._action.currentTarget;
         if (target?.owner === this._action) {
             area = target.area;
         }
@@ -222,8 +213,6 @@ export class DragProxy extends EventEmitter {
             droppedComponentItem?.focus();
         }
 
-        this._action.off('drag', this._dragEventHandler);
-        this._action.off('dragStop', this._dragStopEventHandler)
         this._element.remove();
     }
 

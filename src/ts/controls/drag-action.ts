@@ -10,7 +10,9 @@ import { DragListener } from '../utils/drag-listener';
 class DragTarget {
     constructor(
         private readonly _owner: DragAction,
-        private readonly _area: ContentItem.Area) {
+        private readonly _area: ContentItem.Area,
+        private readonly _pageX: number,
+        private readonly _pageY: number) {
         if (_owner.layoutManager !== _area.contentItem.layoutManager) {
             throw Error('LayoutManager of Area and DragProxy must match');
         }
@@ -22,26 +24,29 @@ class DragTarget {
     drop(item: ComponentItem) {
         this._area.contentItem.onDrop(item, this._area);
     }
+
+    highlightDropZone() {
+        this.area.contentItem.highlightDropZone(this._pageX, this._pageY, this._area);
+    }
 }
 
 /** @internal */
 export class DragAction extends EventEmitter {
     private _dragProxy: DragProxy | null = null;
-    private _dragTarget: DragTarget | null = null;
+    private _currentTarget: DragTarget | null = null;
     private _dragListener: DragListener | null = null;
     private _boundingRect: DOMRect;
+    private _actions: DragAction[] = [];
 
-    private readonly _dragEventHandler = (event: EventEmitter.DragEvent) => this.emit('drag', event);
-    private readonly _dragOverEventHandler = (x: number, y: number, area: ContentItem.Area) => this.onDragOver(x, y, area);
-    private readonly _parentDragEventHandler = (event: EventEmitter.DragEvent) => this.onParentDrag(event);
+    private readonly _dragEventHandler = (event: EventEmitter.DragEvent) => this.onDrag(event);
     private readonly _dragStopEventHandler = () => this.onDragStop();
 
     get layoutManager(): LayoutManager { return this._layoutManager; }
     get parent(): DragAction | null { return this._parent; }
     get proxy(): DragProxy | null { return this._dragProxy; }
     private get parentOrSelf(): DragAction { return this._parent ?? this; }
-    get target(): DragTarget | null { return this.parentOrSelf._dragTarget; }
-    private set target(value : DragTarget | null) { this.parentOrSelf._dragTarget = value; }
+    get currentTarget(): DragTarget | null { return this.parentOrSelf._currentTarget; }
+    private set currentTarget(value : DragTarget | null) { this.parentOrSelf._currentTarget = value; }
 
     private constructor(
         private readonly _layoutManager: LayoutManager,
@@ -49,8 +54,8 @@ export class DragAction extends EventEmitter {
     ) {
         super();
         this._boundingRect = this.computeBoundingRect();
-        this._parent?.on('drag', this._parentDragEventHandler);
-        this._parent?.on('dragStop', this._dragStopEventHandler);
+        this.parentOrSelf._actions.push(this);
+        this._actions.push(this);
     }
 
     private computeBoundingRect(): DOMRect {
@@ -95,16 +100,24 @@ export class DragAction extends EventEmitter {
 
     private createProxy(item: ComponentItem, parentItem: ContentItem, x: number, y: number) {
         this._dragProxy = new DragProxy(this, item, parentItem, x, y);
-        this._dragProxy.on('dragOver', this._dragOverEventHandler);
     }
 
-    private onParentDrag(event: EventEmitter.DragEvent) {
+    private dragLocal(pageX: number, pageY: number): DragTarget | null {
+        if (this._dragProxy !== null) {
+            const area = this._dragProxy.drag(pageX, pageY);
+            return (area !== null) ? new DragTarget(this, area, pageX, pageY) : null;
+        } else {
+            return null;
+        }
+    }
+
+    private dragGlobal(screenX: number, screenY: number): DragTarget | null {
         const source = this._parent?._dragProxy;
         if (!source) {
-            throw new UnexpectedNullError('DAOPD1');
+            throw new UnexpectedNullError('DADG1');
         }
 
-        const { x: pageX, y: pageY } = this.screenToPage(event.screenX, event.screenY);
+        const { x: pageX, y: pageY } = this.screenToPage(screenX, screenY);
         const visible = document.visibilityState === 'visible' && this.isProxyVisible(source, pageX, pageY);
 
         if (visible) {
@@ -112,7 +125,7 @@ export class DragAction extends EventEmitter {
                 const parent = this.layoutManager.groundItem;
                 
                 if (parent === undefined) {
-                    throw new UnexpectedUndefinedError('DAOPD2');
+                    throw new UnexpectedUndefinedError('DADG2');
                 }
                 
                 const config = source.componentItem.toConfig();
@@ -121,42 +134,61 @@ export class DragAction extends EventEmitter {
             }
         } else {
             // Proxy is no longer visible and not currently the drag target -> destroy
-            if (this._dragProxy !== null && this.target?.owner !== this) {
+            if (this._dragProxy !== null && this.currentTarget?.owner !== this) {
                 this.onDragStop();
             }
         }
 
-        this.emit('drag', {
-            pageX: pageX,
-            pageY: pageY,
-            screenX: event.screenX,
-            screenY: event.screenY,
-            offsetX: event.offsetX,
-            offsetY: event.offsetY
-        });
-    }
-
-    private onDragOver(x: number, y: number, area: ContentItem.Area) {
-        // If we already have a drop area but it is in a different window, hide the indicator.
-        if (this.target !== null && this.target.owner !== this) {
-            this.target.owner.layoutManager.hideDropTargetIndicator();
-        }
-
-        this.target = new DragTarget(this, area);
-        area.contentItem.highlightDropZone(x, y, area);
-        this.layoutManager.moveWindowTop();
+        return this.dragLocal(pageX, pageY);
     }
 
     private onDragStop() {
-        this.layoutManager.hideDropTargetIndicator();
-        this.emit('dragStop', undefined);
-
-        this._dragProxy?.off('dragOver', this._dragOverEventHandler);
-        this._dragProxy = null;
+        for (const action of this._actions) {
+            action.layoutManager.hideDropTargetIndicator();
+            action._dragProxy?.drop();
+            action._dragProxy = null;
+        }
 
         this._dragListener?.off('drag', this._dragEventHandler);
         this._dragListener?.off('dragStop', this._dragStopEventHandler);
         this._dragListener = null;
+    }
+
+    private onDrag(event: EventEmitter.DragEvent) {
+        let target: DragTarget | null = null;
+         
+        // Try to find a drag target by invoking all actions.
+        // For secondary actions the screen position of the event have to be translated.
+        // The first valid target is selected, still we want to invoke all actions due to the culling logic in dragGlobal.
+        for (const action of this._actions) {
+            let t: DragTarget | null = null;
+
+            if (action !== this) {
+                t = action.dragGlobal(event.screenX, event.screenY);
+            } else if (this._dragProxy !== null) {
+                t = this.dragLocal(event.pageX, event.pageY);
+            }
+
+            if (target === null) {
+                target = t;
+            }
+        }
+
+        if (target !== null) {
+            // If we already have a drop area but it is in a different window, hide the indicator.
+            if (this.currentTarget !== null && this.currentTarget.owner !== target.owner) {
+                this.currentTarget.owner.layoutManager.hideDropTargetIndicator();
+            }
+
+            // Move the owner of the target to the front, so it has the highest priority for future drag events.
+            const index = this._actions.indexOf(target.owner);
+            this._actions.splice(index, 1);
+            this._actions.unshift(target.owner);
+
+            target.highlightDropZone();
+            target.owner.layoutManager.moveWindowTop();
+            this.currentTarget = target;
+        }
     }
 
     // Spawn a secondary drag action, the proxy element is only created when the pointer enters its window.

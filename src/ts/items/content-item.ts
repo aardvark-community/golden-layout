@@ -503,7 +503,7 @@ export abstract class ContentItem extends EventEmitter {
 
 /** @public */
 export namespace ContentItem {
-    /** @public */
+    /** @internal */
     export interface Area extends AreaLinkedRect {
         surface: number;
         contentItem: ContentItem;
