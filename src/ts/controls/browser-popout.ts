@@ -6,7 +6,7 @@ import { RowOrColumn } from '../items/row-or-column';
 import { LayoutManager } from '../layout-manager';
 import { EventEmitter } from '../utils/event-emitter';
 import { Rect, ItemType } from '../utils/types';
-import { deepExtend, getErrorMessage, getUniqueId } from '../utils/utils';
+import { deepExtend, getErrorMessage, getUniqueId, getWindowTopLeftBorder } from '../utils/utils';
 
 /**
  * Pops a content item out into a new browser window.
@@ -248,9 +248,9 @@ export class BrowserPopout extends EventEmitter {
         }
 
         this._popoutWindow.addEventListener('load', () => {    
+            this.positionAndResizeWindow();
+            
             if (this._popoutWindow) {
-                this._popoutWindow.focus();
-
                 this._popoutWindow.addEventListener('beforeunload', () => {
                     if (this._layoutManager.layoutConfig.settings.popInOnClose && !this._preventPopInOnClose) {
                         this.popIn();
@@ -284,6 +284,31 @@ export class BrowserPopout extends EventEmitter {
                 }
             }
         }
+    }
+
+    /**
+     * @internal
+     */
+    private positionAndResizeWindow() {
+        if (this._popoutWindow === null) {
+            throw new UnexpectedNullError('BPPARW1');
+        }
+
+        // Initial window size parameters describe client (i.e. inner) position and size
+        // Since the border of the popout may have different borders than the main window, we have
+        // to adjust the position and size once the window has been created.
+        const border = getWindowTopLeftBorder(this._popoutWindow);
+        this._popoutWindow.moveTo(
+            this._initialWindowSize.left - border.width,
+            this._initialWindowSize.top - border.height,
+        )
+
+        this._popoutWindow.resizeTo(
+            this._initialWindowSize.width + (this._popoutWindow.outerWidth - this._popoutWindow.innerWidth),
+            this._initialWindowSize.height + (this._popoutWindow.outerHeight - this._popoutWindow.innerHeight)
+        );
+
+        this._popoutWindow.focus();
     }
 
     /**

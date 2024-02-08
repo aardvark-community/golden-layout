@@ -28,9 +28,10 @@ import { DragListener } from './utils/drag-listener';
 import { EventEmitter } from './utils/event-emitter';
 import { EventHub } from './utils/event-hub';
 import { I18nStringId, I18nStrings, i18nStrings } from './utils/i18n-strings';
-import { ItemType, JsonValue, Rect, ResponsiveMode } from './utils/types';
+import { ItemType, JsonValue, Rect, ResponsiveMode, WidthAndHeight } from './utils/types';
 import {
     getElementWidthAndHeight,
+    getWindowInnerScreenPosition,
     removeFromArray,
     setElementHeight,
     setElementWidth
@@ -810,18 +811,29 @@ export abstract class LayoutManager extends EventEmitter {
             }
 
             if (window === undefined) {
-                const windowLeft = globalThis.screenX || globalThis.screenLeft;
-                const windowTop = globalThis.screenY || globalThis.screenTop;
-                const offsetLeft = item.element.offsetLeft;
-                const offsetTop = item.element.offsetTop
-                // const { left: offsetLeft, top: offsetTop } = getJQueryLeftAndTop(item.element);
-                const { width, height } = getElementWidthAndHeight(item.element);
+                const innerScreen = getWindowInnerScreenPosition(globalThis);
+                const clientRect = item.element.getBoundingClientRect();
+
+                // If we have a component item, we have to take the size of the (newly created) header into account.
+                let headerWidth = 0;
+                let headerHeight = 0;
+
+                if (item instanceof ComponentItem) {
+                    const height = ResolvedLayoutConfig.Dimensions.defaults.headerHeight;
+                    const show = item.headerConfig?.show;
+
+                    if (show === 'top' || show === 'bottom' || show === undefined) {
+                        headerHeight = height;
+                    } else if (show === 'left' || show === 'right') {
+                        headerWidth = height;
+                    }
+                }
 
                 window = {
-                    left: windowLeft + offsetLeft,
-                    top: windowTop + offsetTop,
-                    width,
-                    height,
+                    left: innerScreen.left + clientRect.left - headerWidth,
+                    top: innerScreen.top + clientRect.top - headerHeight,
+                    width: clientRect.width + headerWidth,
+                    height: clientRect.height + headerHeight,
                 };
             }
 

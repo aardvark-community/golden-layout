@@ -1,4 +1,4 @@
-import { WidthAndHeight } from './types';
+import { LeftAndTop, WidthAndHeight } from './types';
 
 /** @internal */
 export function numberToPixels(value: number): string {
@@ -84,6 +84,38 @@ export function getElementWidthAndHeight(element: HTMLElement): WidthAndHeight {
         height: element.offsetHeight,
     };
 }
+
+/** @internal */
+export function getWindowTopLeftBorder(window: Window | typeof globalThis): WidthAndHeight {
+    let innerScreenX: number | undefined = (<any>window).mozInnerScreenX;
+    let innerScreenY: number | undefined = (<any>window).mozInnerScreenY;
+    let borderX: number, borderY: number;
+
+    if (innerScreenX === undefined || innerScreenY === undefined) {
+        borderX = (window.outerWidth - window.innerWidth) / 2;        // Assume left / right border is the same
+        borderY = window.outerHeight - window.innerHeight - borderX;  // Assume bottom border is the same as left / right
+    } else {
+        borderX = innerScreenX - window.screenX;
+        borderY = innerScreenY - window.screenY;
+    }
+
+    return { width: borderX, height: borderY }
+}
+
+/** @internal */
+export function getWindowInnerScreenPosition(window: Window | typeof globalThis): LeftAndTop {
+    let innerScreenX: number | undefined = (<any>window).mozInnerScreenX;
+    let innerScreenY: number | undefined = (<any>window).mozInnerScreenY;
+
+    if (innerScreenX === undefined || innerScreenY === undefined) {
+        const border = getWindowTopLeftBorder(window);
+        innerScreenX = window.screenX + border.width;
+        innerScreenY = window.screenY + border.height;
+    }
+
+    return { left: innerScreenX, top: innerScreenY };
+}
+
 
 /** @internal */
 export function setElementDisplayVisibility(element: HTMLElement, visible: boolean): void {

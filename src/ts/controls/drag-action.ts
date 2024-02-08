@@ -5,6 +5,7 @@ import { EventEmitter } from '../utils/event-emitter';
 import { ContentItem } from '../items/content-item';
 import { ComponentItem } from '../items/component-item';
 import { DragListener } from '../utils/drag-listener';
+import { getWindowInnerScreenPosition } from '../utils/utils';
 
 /** @internal */
 class DragTarget {
@@ -73,19 +74,11 @@ export class DragAction extends EventEmitter {
     }
 
     private screenToPage(screenX: number, screenY: number) {
-        let innerScreenX: number | undefined = (<any>globalThis).mozInnerScreenX;
-        let innerScreenY: number | undefined = (<any>globalThis).mozInnerScreenY;
-
-        if (innerScreenX === undefined || innerScreenY === undefined) {
-            const borderX = (globalThis.outerWidth - globalThis.innerWidth) / 2;        // Assume left / right border is the same
-            const borderY = globalThis.outerHeight - globalThis.innerHeight - borderX;  // Assume bottom border is the same as left / right
-            innerScreenX = globalThis.screenX + borderX;
-            innerScreenY = globalThis.screenY + borderY;
-        }
+        const innerScreen = getWindowInnerScreenPosition(globalThis);
 
         return {
-            x: document.body.scrollLeft + screenX - innerScreenX,
-            y: document.body.scrollTop + screenY - innerScreenY
+            x: document.body.scrollLeft + screenX - innerScreen.left,
+            y: document.body.scrollTop + screenY - innerScreen.top
         };
     }
 
