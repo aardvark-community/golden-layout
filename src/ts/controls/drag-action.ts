@@ -38,7 +38,7 @@ export class DragAction extends EventEmitter {
     private _boundingRect: DOMRect;
     private _actions: DragAction[] = [];
 
-    private readonly _dragEventHandler = (event: EventEmitter.DragEvent) => this.onDrag(event);
+    private readonly _dragEventHandler = (_offsetX: number, _offsetY: number, event: EventEmitter.DragEvent) => this.onDrag(event);
     private readonly _dragStopEventHandler = () => this.onDragStop();
 
     get layoutManager(): LayoutManager { return this._layoutManager; }

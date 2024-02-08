@@ -221,7 +221,7 @@ export namespace EventEmitter {
     export type StringParam = [string];
     export type DragStartParams = [originalX: number, originalY: number];
     export type DragStopParams = [event: PointerEvent | undefined];
-    export type DragParams = [EventEmitter.DragEvent];
+    export type DragParams = [offsetX: number, offsetY: number, event: EventEmitter.DragEvent];
     export type BeforeComponentReleaseParams = [component: unknown];
     export type ClickBubblingEventParam = [ClickBubblingEvent];
     export type TouchStartBubblingEventParam = [TouchStartBubblingEvent];
@@ -231,8 +231,6 @@ export namespace EventEmitter {
         readonly pageY: number;
         readonly screenX: number;
         readonly screenY: number;
-        readonly offsetX: number;
-        readonly offsetY: number;
     }
 
     export class BubblingEvent {

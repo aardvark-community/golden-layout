@@ -473,10 +473,6 @@ export namespace EventEmitter {
     // (undocumented)
     export interface DragEvent {
         // (undocumented)
-        readonly offsetX: number;
-        // (undocumented)
-        readonly offsetY: number;
-        // (undocumented)
         readonly pageX: number;
         // (undocumented)
         readonly pageY: number;
@@ -486,7 +482,7 @@ export namespace EventEmitter {
         readonly screenY: number;
     }
     // (undocumented)
-    export type DragParams = [EventEmitter.DragEvent];
+    export type DragParams = [offsetX: number, offsetY: number, event: EventEmitter.DragEvent];
     // (undocumented)
     export type DragStartParams = [originalX: number, originalY: number];
     // (undocumented)

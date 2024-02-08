@@ -9,10 +9,7 @@ export class DragListener extends EventEmitter {
     private _eBody: HTMLElement;
     private _nDelay: number;
     private _nDistance: number;
-    private _nX: number;
-    private _nY: number;
-    private _nOriginalX: number;
-    private _nOriginalY: number;
+    private _originalEvent: EventEmitter.DragEvent;
     private _dragging: boolean;
     private _pointerTracking = false;
 
@@ -44,11 +41,7 @@ export class DragListener extends EventEmitter {
          */
         this._nDistance = 10;
 
-        this._nX = 0;
-        this._nY = 0;
-
-        this._nOriginalX = 0;
-        this._nOriginalY = 0;
+        this._originalEvent = { pageX: 0, pageY: 0, screenX: 0, screenY: 0};
 
         this._dragging = false;
 
@@ -67,14 +60,12 @@ export class DragListener extends EventEmitter {
 
     private onPointerDown(oEvent: PointerEvent) {
         if (this._allowableTargets.includes(oEvent.target as HTMLElement) && oEvent.isPrimary) {
-            const coordinates = this.getPointerCoordinates(oEvent);
-            this.processPointerDown(coordinates);
+            this.processPointerDown(oEvent);
         }
     }
 
-    private processPointerDown(coordinates: DragListener.PointerCoordinates) {
-        this._nOriginalX = coordinates.x;
-        this._nOriginalY = coordinates.y;
+    private processPointerDown(event: PointerEvent) {
+        this._originalEvent = event;
 
         this._oDocument.addEventListener('pointermove', this._pointerMoveEventListener);
         this._oDocument.addEventListener('pointerup', this._pointerUpEventListener, { passive: true });
@@ -102,27 +93,20 @@ export class DragListener extends EventEmitter {
     }
 
     private processDragMove(event: PointerEvent) {
-        this._nX = event.pageX - this._nOriginalX;
-        this._nY = event.pageY - this._nOriginalY;
+        const offsetX = event.pageX - this._originalEvent.pageX;
+        const offsetY = event.pageY - this._originalEvent.pageY;
 
         if (this._dragging === false) {
             if (
-                Math.abs(this._nX) > this._nDistance ||
-                Math.abs(this._nY) > this._nDistance
+                Math.abs(offsetX) > this._nDistance ||
+                Math.abs(offsetY) > this._nDistance
             ) {
                 this.startDrag();
             }
         }
 
         if (this._dragging) {
-            this.emit('drag', {
-                pageX: event.pageX,
-                pageY: event.pageY,
-                screenX: event.screenX,
-                screenY: event.screenY,
-                offsetX: this._nX,
-                offsetY: this._nY
-            });
+            this.emit('drag', offsetX, offsetY, event);
         }
     }
 
@@ -163,23 +147,7 @@ export class DragListener extends EventEmitter {
         this._dragging = true;
         this._eBody.classList.add(DomConstants.ClassName.Dragging);
         this._eElement.classList.add(DomConstants.ClassName.Dragging);
-        this.emit('dragStart', this._nOriginalX, this._nOriginalY);
-    }
-
-    private getPointerCoordinates(event: PointerEvent) {
-        const result: DragListener.PointerCoordinates = {
-            x: event.pageX,
-            y: event.pageY
-        };
-        return result;
-    }
-
-}
-
-/** @internal */
-export namespace DragListener {
-    export interface PointerCoordinates {
-        x: number,
-        y: number,
+        this.emit('dragStart', this._originalEvent.pageX, this._originalEvent.pageY);
+        this.emit('drag', 0, 0, this._originalEvent);
     }
 }
