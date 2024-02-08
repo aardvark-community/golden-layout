@@ -724,11 +724,16 @@ export namespace LayoutConfig {
         hasHeaders?: boolean;
 
         /**
-         * Constrains the area in which items can be dragged to the layout's container. Will be set to false
-         * automatically when layout.createDragSource() is called.
+         * If true, the user can drag components from one window to another.
          * Default: true
          */
-        constrainDragToContainer?: boolean;
+        dragBetweenWindows?: boolean;
+
+        /**
+         * If true, the user can drag and drop components outside their containing window, creating a new popout window.
+         * Default: true
+         */
+        dragToNewWindow?: boolean;
 
         /**
          * If true, the user can re-arrange the layout by dragging items by their tabs to the desired location.
@@ -811,7 +816,8 @@ export namespace LayoutConfig {
     export namespace Settings {
         export function resolve(settings: Settings | undefined): ResolvedLayoutConfig.Settings {
             const result: ResolvedLayoutConfig.Settings = {
-                constrainDragToContainer: settings?.constrainDragToContainer ?? ResolvedLayoutConfig.Settings.defaults.constrainDragToContainer,
+                dragBetweenWindows: settings?.dragBetweenWindows ?? ResolvedLayoutConfig.Settings.defaults.dragBetweenWindows,
+                dragToNewWindow: settings?.dragToNewWindow ?? ResolvedLayoutConfig.Settings.defaults.dragToNewWindow,
                 reorderEnabled: settings?.reorderEnabled ?? ResolvedLayoutConfig.Settings.defaults.reorderEnabled,
                 popoutWholeStack: settings?.popoutWholeStack ?? ResolvedLayoutConfig.Settings.defaults.popoutWholeStack,
                 blockedPopoutsThrowError: settings?.blockedPopoutsThrowError ?? ResolvedLayoutConfig.Settings.defaults.blockedPopoutsThrowError,

@@ -14,7 +14,8 @@ export namespace ConfigMinifier {
     const keys: readonly string[] = [
         'settings',
         'hasHeaders',
-        'constrainDragToContainer',
+        'dragBetweenWindows',
+        'dragToNewWindow',
         'selectionEnabled',
         'dimensions',
         'borderWidth',
@@ -43,7 +44,6 @@ export namespace ConfigMinifier {
         'activeItemIndex',
         'reorderEnabled',
         'borderGrabWidth',
-
 
 
 

@@ -21,10 +21,6 @@ import { DragAction } from './drag-action';
  * @internal
  */
 export class DragProxy extends EventEmitter {
-    private _minX: number;
-    private _minY: number;
-    private _maxX: number;
-    private _maxY: number;
     private _outerWidth: number;
     private _outerHeight: number;
     private _sided: boolean;
@@ -73,7 +69,6 @@ export class DragProxy extends EventEmitter {
 
         document.body.appendChild(this._element);
 
-        this.determineMinMaxXY();
         this.layoutManager.calculateItemAreas();
         this.setDropPosition(x, y);
     }
@@ -116,20 +111,6 @@ export class DragProxy extends EventEmitter {
         this._proxyContainerElement.appendChild(this._componentItem.element);
     }
 
-    private determineMinMaxXY(): void {
-        const groundItem = this.layoutManager.groundItem;
-        if (groundItem === undefined) {
-            throw new UnexpectedUndefinedError('DPDMMXY73109');
-        } else {
-            const groundElement = groundItem.element;
-            const rect = groundElement.getBoundingClientRect();
-            this._minX = rect.left + document.body.scrollLeft;
-            this._minY = rect.top + document.body.scrollTop;
-            this._maxX = this._minX + rect.width;
-            this._maxY = this._minY + rect.height;
-        }
-    }
-
     /**
      * Callback on every mouseMove event during a drag. Determines if the drag is
      * still within the valid drag area and calls the layoutManager to highlight the
@@ -152,20 +133,6 @@ export class DragProxy extends EventEmitter {
      * @internal
      */
     private setDropPosition(x: number, y: number): ContentItem.Area | null {
-        if (this.layoutManager.layoutConfig.settings.constrainDragToContainer) {
-            if (x <= this._minX) {
-                x = Math.ceil(this._minX);
-            } else if (x >= this._maxX) {
-                x = Math.floor(this._maxX);
-            }
-
-            if (y <= this._minY) {
-                y = Math.ceil(this._minY);
-            } else if (y >= this._maxY) {
-                y = Math.floor(this._maxY);
-            }
-        }
-
         this._element.style.left = numberToPixels(x);
         this._element.style.top = numberToPixels(y);
         return this.layoutManager.getArea(x, y);

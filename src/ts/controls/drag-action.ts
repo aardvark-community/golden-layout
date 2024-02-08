@@ -58,7 +58,6 @@ export class DragAction extends EventEmitter {
         super();
         this._boundingRect = this.computeBoundingRect();
         this.parentOrSelf._actions.push(this);
-        this._actions.push(this);
     }
 
     private computeBoundingRect(): DOMRect {
@@ -201,7 +200,7 @@ export class DragAction extends EventEmitter {
 
     // Start a drag action, immediately showing a proxy element.
     static start(layoutManager: LayoutManager, listener: DragListener, item: ComponentItem, stack: Stack | null, x: number, y: number): DragAction {
-        const allowPopout = item.findAncestorWithSiblings() !== null;
+        const allowPopout = layoutManager.layoutConfig.settings.dragToNewWindow && (item.findAncestorWithSiblings() !== null);
         const action = new DragAction(layoutManager, allowPopout);
         action.createProxy(item, stack, x, y);
         action._dragListener = listener;

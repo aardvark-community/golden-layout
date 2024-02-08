@@ -1041,7 +1041,8 @@ export namespace LayoutConfig {
         blockedPopoutsThrowError?: boolean;
         // @deprecated
         closePopoutsOnUnload?: boolean;
-        constrainDragToContainer?: boolean;
+        dragBetweenWindows?: boolean;
+        dragToNewWindow?: boolean;
         // @deprecated (undocumented)
         hasHeaders?: boolean;
         popInOnClose?: boolean;
@@ -1571,7 +1572,9 @@ export namespace ResolvedLayoutConfig {
         // @deprecated (undocumented)
         readonly closePopoutsOnUnload: boolean;
         // (undocumented)
-        readonly constrainDragToContainer: boolean;
+        readonly dragBetweenWindows: boolean;
+        // (undocumented)
+        readonly dragToNewWindow: boolean;
         // (undocumented)
         readonly popInOnClose: boolean;
         // (undocumented)

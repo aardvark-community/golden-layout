@@ -393,7 +393,8 @@ export interface ResolvedLayoutConfig {
 export namespace ResolvedLayoutConfig {
     export interface Settings {
         // see Config.Settings for comments
-        readonly constrainDragToContainer: boolean;
+        readonly dragBetweenWindows: boolean;
+        readonly dragToNewWindow: boolean;
         readonly reorderEnabled: boolean; // also in ResolvedItemConfig which takes precedence
         readonly popoutWholeStack: boolean;
         readonly blockedPopoutsThrowError: boolean;
@@ -408,7 +409,8 @@ export namespace ResolvedLayoutConfig {
 
     export namespace Settings {
         export const defaults: ResolvedLayoutConfig.Settings = {
-            constrainDragToContainer: true,
+            dragBetweenWindows: true,
+            dragToNewWindow: true,
             reorderEnabled: true,
             popoutWholeStack: false,
             blockedPopoutsThrowError: true,
@@ -422,7 +424,8 @@ export namespace ResolvedLayoutConfig {
 
         export function createCopy(original: Settings): Settings {
             return {
-                constrainDragToContainer: original.constrainDragToContainer,
+                dragBetweenWindows: original.dragBetweenWindows,
+                dragToNewWindow: original.dragToNewWindow,
                 reorderEnabled: original.reorderEnabled,
                 popoutWholeStack: original.popoutWholeStack,
                 blockedPopoutsThrowError: original.blockedPopoutsThrowError,
