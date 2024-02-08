@@ -1,4 +1,4 @@
-import { ResolvedComponentItemConfig, ResolvedHeaderedItemConfig } from '../config/resolved-config';
+import { ResolvedComponentItemConfig, ResolvedHeaderedItemConfig, ResolvedLayoutConfig } from '../config/resolved-config';
 import { ComponentContainer } from '../container/component-container';
 import { Tab } from '../controls/tab';
 import { UnexpectedNullError } from '../errors/internal-error';
@@ -140,6 +140,23 @@ export class ComponentItem extends ContentItem {
     /** @internal */
     drag(): void {
         this._container.drag();
+    }
+
+    /** @internal */
+    getOuterBoundingClientRect(): DOMRect { 
+        const rect = this.element.getBoundingClientRect();
+        const show = this.headerConfig?.show;
+        const height = ResolvedLayoutConfig.Dimensions.defaults.headerHeight;
+
+        const headerWidth = (show === 'left' || show === 'right') ? height : 0;
+        const headerHeight = (show === 'top' || show === 'bottom' || show === undefined) ? height : 0;
+
+        return DOMRect.fromRect({
+            x: rect.left - headerWidth,
+            y: rect.top - headerHeight,
+            width: rect.width + headerWidth,
+            height: rect.height + headerHeight,
+        });
     }
 
     /** @internal */

@@ -203,6 +203,8 @@ export class ComponentItem extends ContentItem {
     focus(suppressEvent?: boolean): void;
     // (undocumented)
     get focused(): boolean;
+    // @internal (undocumented)
+    getOuterBoundingClientRect(): DOMRect;
     // (undocumented)
     get headerConfig(): ResolvedHeaderedItemConfig.Header | undefined;
     // @internal (undocumented)
@@ -296,6 +298,8 @@ export abstract class ContentItem extends EventEmitter {
     destroy(): void;
     // (undocumented)
     get element(): HTMLElement;
+    // (undocumented)
+    findAncestorWithSiblings(): ContentItem | null;
     // @internal
     getElementArea(element?: HTMLElement): ContentItem.Area | null;
     // @internal (undocumented)

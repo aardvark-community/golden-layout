@@ -234,12 +234,7 @@ export class Header extends EventEmitter {
         let popout: boolean;
 
         // Also we want to prevent popping out if that would leave us with an empty layout.
-        let isLast = true;
-        let curr = this.parent.parent;
-        while (isLast && curr !== null && curr.isInitialised) {
-            isLast = curr.contentItems.length === 1;
-            curr = curr.parent;
-        }
+        let isLast = this.tabs[0].componentItem.findAncestorWithSiblings() === null;
 
         if (this._layoutManager.layoutConfig.settings.popoutWholeStack) {
             const allPopoutable = this.tabs.every(tab => tab.componentItem.headerConfig?.popout !== false) 

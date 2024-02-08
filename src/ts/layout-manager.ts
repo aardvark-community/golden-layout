@@ -792,53 +792,38 @@ export abstract class LayoutManager extends EventEmitter {
          * In order to support this we move up the tree until we find something
          * that will remain after the item is being popped out
          */
-        let parent = item.parent;
-        let child = item;
-        while (parent !== null && parent.contentItems.length === 1 && !parent.isGround) {
-            child = parent;
-            parent = parent.parent;
+        const anchor = item.findAncestorWithSiblings() ?? this.groundItem?.contentItems[0]
+        if (anchor === undefined) {
+            throw new UnexpectedUndefinedError('LMCPFCI00833');
         }
 
-        if (parent === null) {
+        if (anchor.parent === null) {
             throw new UnexpectedNullError('LMCPFCI00834');
         } else {
             if (indexInParent === undefined) {
-                indexInParent = parent.contentItems.indexOf(child);
+                indexInParent = anchor.parent.contentItems.indexOf(anchor);
             }
 
             if (parentId !== null) {
-                parent.addPopInParentId(parentId);
+                anchor.parent.addPopInParentId(parentId);
             }
 
             if (window === undefined) {
                 const innerScreen = getWindowInnerScreenPosition(globalThis);
-                const clientRect = item.element.getBoundingClientRect();
-
-                // If we have a component item, we have to take the size of the (newly created) header into account.
-                let headerWidth = 0;
-                let headerHeight = 0;
-
-                if (item instanceof ComponentItem) {
-                    const height = ResolvedLayoutConfig.Dimensions.defaults.headerHeight;
-                    const show = item.headerConfig?.show;
-
-                    if (show === 'top' || show === 'bottom' || show === undefined) {
-                        headerHeight = height;
-                    } else if (show === 'left' || show === 'right') {
-                        headerWidth = height;
-                    }
-                }
+                const clientRect = (item instanceof ComponentItem) ? item.getOuterBoundingClientRect() : item.element.getBoundingClientRect();
 
                 window = {
-                    left: innerScreen.left + clientRect.left - headerWidth,
-                    top: innerScreen.top + clientRect.top - headerHeight,
-                    width: clientRect.width + headerWidth,
-                    height: clientRect.height + headerHeight,
+                    left: innerScreen.left + clientRect.left,
+                    top: innerScreen.top + clientRect.top,
+                    width: clientRect.width,
+                    height: clientRect.height,
                 };
             }
 
             const itemConfig = item.toConfig();
-            item.remove();
+            if (item.parent?.contentItems.includes(item)) {
+                item.remove();
+            }
 
             if (!ResolvedRootItemConfig.isRootItemConfig(itemConfig)) {
                 throw new Error(`${i18nStrings[I18nStringId.PopoutCannotBeCreatedWithGroundItemConfig]}`);

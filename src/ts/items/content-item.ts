@@ -352,6 +352,19 @@ export abstract class ContentItem extends EventEmitter {
         };
     }
 
+    findAncestorWithSiblings(): ContentItem | null {
+        let curr: ContentItem | null = this;
+
+        while (curr !== null) {
+            if (curr.parent !== null && curr.parent.contentItems.length > 1) {
+                return curr;
+            }
+            curr = curr.parent;
+        }
+
+        return null;
+    }
+
     /**
      * The tree of content items is created in two steps: First all content items are instantiated,
      * then init is called recursively from top to bottem. This is the basic init function,

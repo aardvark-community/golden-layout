@@ -1,3 +1,4 @@
+import { ResolvedPopoutLayoutConfig } from '../config/resolved-config';
 import { UnexpectedNullError, UnexpectedUndefinedError } from '../errors/internal-error';
 import { ComponentItem } from '../items/component-item';
 import { ContentItem } from '../items/content-item';
@@ -5,8 +6,10 @@ import { Stack } from '../items/stack';
 import { LayoutManager } from '../layout-manager';
 import { DomConstants } from '../utils/dom-constants';
 import { EventEmitter } from '../utils/event-emitter';
-import { Side } from '../utils/types';
+import { Side, WidthAndHeight } from '../utils/types';
 import {
+    getUniqueId,
+    getWindowInnerScreenPosition,
     numberToPixels
 } from '../utils/utils';
 import { DragAction } from './drag-action';
@@ -28,6 +31,7 @@ export class DragProxy extends EventEmitter {
     private _element: HTMLElement;
     private _proxyContainerElement: HTMLElement;
     private _componentItemFocused: boolean;
+    private readonly _originalSize: WidthAndHeight;
 
     get element(): HTMLElement { return this._element; }
     get outerWidth(): number { return this._outerWidth; }
@@ -43,11 +47,12 @@ export class DragProxy extends EventEmitter {
     constructor(
         private readonly _action: DragAction,
         private readonly _componentItem: ComponentItem,
-        private readonly _originalParent: ContentItem,
+        private readonly _originalStack: Stack | null,
         x: number, y: number
     ) {
         super();
 
+        this._originalSize = this._componentItem.getOuterBoundingClientRect();
         this.createDragProxyElements(x, y);
 
         if (this._componentItem.parent === null) {
@@ -95,13 +100,15 @@ export class DragProxy extends EventEmitter {
         this._element.appendChild(headerElement);
         this._element.appendChild(this._proxyContainerElement);
 
-        if (this._originalParent instanceof Stack && this._originalParent.headerShow) {
-            this._sided = this._originalParent.headerLeftRightSided;
-            this._element.classList.add('lm_' + this._originalParent.headerSide);
-            if ([Side.right, Side.bottom].indexOf(this._originalParent.headerSide) >= 0) {
+        const stack = this._originalStack ?? this._action.parent?.proxy?._originalStack ?? null;
+        if (stack !== null && stack.headerShow) {
+            this._sided = stack.headerLeftRightSided;
+            this._element.classList.add('lm_' + stack.headerSide);
+            if ([Side.right, Side.bottom].indexOf(stack.headerSide) >= 0) {
                 this._proxyContainerElement.insertAdjacentElement('afterend', headerElement);
             }
         }
+        
         this._element.style.left = numberToPixels(initialX);
         this._element.style.top = numberToPixels(initialY);
         tabElement.setAttribute('title', this._componentItem.title);
@@ -189,14 +196,21 @@ export class DragProxy extends EventEmitter {
             newParentContentItem.onDrop(droppedComponentItem, area);
 
         /**
-         * No valid drop area found during the duration of the drag. Return
-         * content item to its original position if a original parent is provided.
-         * (Which is not the case if the drag had been initiated by createDragSource).
-         * Only do this if the proxy belongs to the action that initiated the drag.
+         * No valid drop area found during the duration of the drag.
+         * Create a popout.
          */
-        } else if (this._originalParent && target === null && this._action.parent === null) {
-            droppedComponentItem = this._componentItem;
-            this._originalParent.addChild(droppedComponentItem);
+        } else if (target === null && this._action.parent === null) {
+            const innerScreen = getWindowInnerScreenPosition(globalThis);
+
+            const window : ResolvedPopoutLayoutConfig.Window = {
+                left: innerScreen.left + this.element.offsetLeft,
+                top: innerScreen.top + this.element.offsetTop,
+                width: this._originalSize.width,
+                height: this._originalSize.height
+            }
+
+            this.layoutManager.createPopoutFromContentItem(this._componentItem, window, getUniqueId(), undefined);
+            this._componentItem.destroy();
 
         /**
          * The drag didn't ultimately end up with adding the content item to

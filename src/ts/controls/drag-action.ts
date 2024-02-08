@@ -6,6 +6,7 @@ import { ContentItem } from '../items/content-item';
 import { ComponentItem } from '../items/component-item';
 import { DragListener } from '../utils/drag-listener';
 import { getWindowInnerScreenPosition } from '../utils/utils';
+import { Stack } from '../items/stack';
 
 /** @internal */
 class DragTarget {
@@ -51,6 +52,7 @@ export class DragAction extends EventEmitter {
 
     private constructor(
         private readonly _layoutManager: LayoutManager,
+        private readonly _allowPopout: boolean = false,
         private readonly _parent: DragAction | null = null
     ) {
         super();
@@ -91,8 +93,8 @@ export class DragAction extends EventEmitter {
         );
     }
 
-    private createProxy(item: ComponentItem, parentItem: ContentItem, x: number, y: number) {
-        this._dragProxy = new DragProxy(this, item, parentItem, x, y);
+    private createProxy(item: ComponentItem, stack: Stack | null, x: number, y: number) {
+        this._dragProxy = new DragProxy(this, item, stack, x, y);
     }
 
     private dragLocal(pageX: number, pageY: number): DragTarget | null {
@@ -123,7 +125,7 @@ export class DragAction extends EventEmitter {
                 
                 const config = source.componentItem.toConfig();
                 const dragItem = new ComponentItem(this.layoutManager, config, parent);
-                this.createProxy(dragItem, parent, pageX, pageY);
+                this.createProxy(dragItem, null, pageX, pageY);
             }
         } else {
             // Proxy is no longer visible and not currently the drag target -> destroy
@@ -145,6 +147,7 @@ export class DragAction extends EventEmitter {
         this._dragListener?.off('drag', this._dragEventHandler);
         this._dragListener?.off('dragStop', this._dragStopEventHandler);
         this._dragListener = null;
+        this._currentTarget = null;
     }
 
     private onDrag(event: EventEmitter.DragEvent) {
@@ -167,19 +170,22 @@ export class DragAction extends EventEmitter {
             }
         }
 
-        if (target !== null) {
+        if (target !== null || this._allowPopout) {
             // If we already have a drop area but it is in a different window, hide the indicator.
-            if (this.currentTarget !== null && this.currentTarget.owner !== target.owner) {
+            if (this.currentTarget !== null && this.currentTarget.owner !== target?.owner) {
                 this.currentTarget.owner.layoutManager.hideDropTargetIndicator();
             }
 
-            // Move the owner of the target to the front, so it has the highest priority for future drag events.
-            const index = this._actions.indexOf(target.owner);
-            this._actions.splice(index, 1);
-            this._actions.unshift(target.owner);
+            if (target !== null) {
+                // Move the owner of the target to the front, so it has the highest priority for future drag events.
+                const index = this._actions.indexOf(target.owner);
+                this._actions.splice(index, 1);
+                this._actions.unshift(target.owner);
 
-            target.highlightDropZone();
-            target.owner.layoutManager.moveWindowTop();
+                target.highlightDropZone();
+                target.owner.layoutManager.moveWindowTop();
+            }
+
             this.currentTarget = target;
         }
     }
@@ -190,13 +196,14 @@ export class DragAction extends EventEmitter {
             throw new Error('Secondary DragAction cannot spawn another DragAction.');
         }
 
-        return new DragAction(layoutManager, parent);
+        return new DragAction(layoutManager, false, parent);
     }
 
     // Start a drag action, immediately showing a proxy element.
-    static start(layoutManager: LayoutManager, listener: DragListener, item: ComponentItem, parentItem: ContentItem, x: number, y: number): DragAction {
-        const action = new DragAction(layoutManager);
-        action.createProxy(item, parentItem, x, y);
+    static start(layoutManager: LayoutManager, listener: DragListener, item: ComponentItem, stack: Stack | null, x: number, y: number): DragAction {
+        const allowPopout = item.findAncestorWithSiblings() !== null;
+        const action = new DragAction(layoutManager, allowPopout);
+        action.createProxy(item, stack, x, y);
         action._dragListener = listener;
         listener.on('drag', action._dragEventHandler);
         listener.on('dragStop', action._dragStopEventHandler);
