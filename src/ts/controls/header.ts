@@ -220,6 +220,7 @@ export class Header extends EventEmitter {
      */
     private updateButtons(): void {
         const activeComponentItem = this._getActiveComponentItemEvent();
+        const isLast = this._parent.findAncestorWithSiblings() === null;
         
         // Close button is only visible if all items of the stack are closable
         // and the active component has its close button set to visible. Note that
@@ -230,25 +231,20 @@ export class Header extends EventEmitter {
         setElementDisplayVisibility(this._closeButton.element, allClosable && close);
         
         // Popout button is visible if the active component is closable and has its popout button enabled.
-        // If popoutWholeStack = true, the button is visible if this is true for every item.
-        let popout: boolean;
-
+        // If popoutWholeStack = true, the button is only visible if every item is closable.
         // Also we want to prevent popping out if that would leave us with an empty layout.
-        let isLast = this.tabs[0].componentItem.findAncestorWithSiblings() === null;
-
+        let popout = activeComponentItem?.headerConfig?.popout !== false;
         if (this._layoutManager.layoutConfig.settings.popoutWholeStack) {
-            const allPopoutable = this.tabs.every(tab => tab.componentItem.headerConfig?.popout !== false) 
-            popout = !isLast && allClosable && allPopoutable;
+            popout &&= !isLast && allClosable;
         } else {
-            isLast &&= this.tabs.length === 1;
             const closable = activeComponentItem?.isClosable !== false;
-            popout = !isLast && closable && (activeComponentItem?.headerConfig?.popout !== false);
+            popout &&= !(isLast && this.tabs.length === 1) && closable;
         }
-
         setElementDisplayVisibility(this._popoutButton.element, popout);
 
-        // Maximize button is only visible if all items have their maximize button enabled.
-        const maximize = this.tabs.every(tab => tab.componentItem.headerConfig?.maximise !== false);
+        // Maximize button is visible if the active component has its maximize button enabled or the stack is already maximized.
+        // Also hide it if stack is the last item in the layout.
+        const maximize = (activeComponentItem?.headerConfig?.maximise !== false || this._parent.isMaximised) && !isLast;
         setElementDisplayVisibility(this._maximiseButton.element, maximize);
     }
 
