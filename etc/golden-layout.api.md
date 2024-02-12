@@ -301,7 +301,7 @@ export abstract class ContentItem extends EventEmitter {
     // (undocumented)
     findAncestorWithSiblings(): ContentItem | null;
     // @internal
-    getElementArea(element?: HTMLElement): ContentItem.Area | null;
+    getElementArea(element?: HTMLElement): ContentItem.Area;
     // @internal (undocumented)
     protected hide(): void;
     // @internal (undocumented)

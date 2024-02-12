@@ -109,6 +109,8 @@ export abstract class LayoutManager extends EventEmitter {
     protected _constructorOrSubWindowLayoutConfig: LayoutConfig | undefined; // protected for backwards compatibility
     /** @internal */
     private _parent: LayoutManager | null = null;
+    /** @internal */
+    private _lastArea: ContentItem.Area | null = null;
 
     /** @internal */
     private _resizeObserver = new ResizeObserver(() => this.handleContainerResize());
@@ -1210,6 +1212,11 @@ export abstract class LayoutManager extends EventEmitter {
 
     /** @internal */
     getArea(x: number, y: number): ContentItem.Area | null {
+        if (this._groundItem === undefined) {
+            throw new UnexpectedUndefinedError('LMGA44365');
+        }
+
+        const groundArea = this._groundItem.getElementArea();
         let matchingArea: ContentItem.Area | null = null;
         let smallestSurface = Infinity;
 
@@ -1228,7 +1235,13 @@ export abstract class LayoutManager extends EventEmitter {
             }
         }
 
-        return matchingArea;
+        // If we have no matching area, return the last area instead (unless we are out of bounds of the ground item).
+        // Avoids issues with splitters which don't have an area themselves.
+        if (matchingArea !== null || x < groundArea.x1 || x >= groundArea.x2 || y < groundArea.y1 || y >= groundArea.y2) {
+            this._lastArea = matchingArea;
+        }
+
+        return this._lastArea;
     }
 
     /** @internal */
