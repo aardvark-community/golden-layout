@@ -1014,7 +1014,7 @@ export abstract class LayoutManager extends EventEmitter {
     }
 
     /** @internal */
-    startComponentDrag(x: number, y: number, dragListener: DragListener, componentItem: ComponentItem, stack: Stack): void {
+    startComponentDrag(x: number, y: number, dragListener: DragListener, componentItem: ComponentItem): void {
         // Cancel the drag of the last remaining component immediately if:
         //  (1) this is the main window (which must not be destroyed, popouts are closed when the last component is removed)
         //  (2) or dragging between windows is disabled (only the current location is a valid drop target)
@@ -1023,7 +1023,7 @@ export abstract class LayoutManager extends EventEmitter {
             return;
         }
 
-        const action = DragAction.start(this, dragListener, componentItem, stack, x, y);
+        const action = DragAction.start(this, dragListener, componentItem, x, y);
 
         if (this.layoutConfig.settings.dragBetweenWindows && componentItem.isClosable) {
             for (let lm of this.instances) {

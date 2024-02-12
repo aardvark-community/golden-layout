@@ -2,7 +2,6 @@ import { ResolvedPopoutLayoutConfig } from '../config/resolved-config';
 import { UnexpectedNullError, UnexpectedUndefinedError } from '../errors/internal-error';
 import { ComponentItem } from '../items/component-item';
 import { ContentItem } from '../items/content-item';
-import { Stack } from '../items/stack';
 import { LayoutManager } from '../layout-manager';
 import { DomConstants } from '../utils/dom-constants';
 import { EventEmitter } from '../utils/event-emitter';
@@ -43,7 +42,6 @@ export class DragProxy extends EventEmitter {
     constructor(
         private readonly _action: DragAction,
         private readonly _componentItem: ComponentItem,
-        private readonly _originalStack: Stack | null,
         x: number, y: number
     ) {
         super();
@@ -95,11 +93,11 @@ export class DragProxy extends EventEmitter {
         this._element.appendChild(headerElement);
         this._element.appendChild(this._proxyContainerElement);
 
-        const stack = this._originalStack ?? this._action.parent?.proxy?._originalStack ?? null;
-        if (stack !== null && stack.headerShow) {
-            this._sided = stack.headerLeftRightSided;
-            this._element.classList.add('lm_' + stack.headerSide);
-            if ([Side.right, Side.bottom].indexOf(stack.headerSide) >= 0) {
+        const side = this._componentItem.headerConfig?.show;
+        if (side) {
+            this._sided = [Side.right, Side.left].includes(side);
+            this._element.classList.add('lm_' + side);
+            if ([Side.right, Side.bottom].indexOf(side) >= 0) {
                 this._proxyContainerElement.insertAdjacentElement('afterend', headerElement);
             }
         }

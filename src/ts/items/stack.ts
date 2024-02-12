@@ -900,7 +900,7 @@ export class Stack extends ComponentParentableItem {
         if (this.isMaximised === true) {
             this.toggleMaximise();
         }
-        this.layoutManager.startComponentDrag(x, y, dragListener, componentItem, this);
+        this.layoutManager.startComponentDrag(x, y, dragListener, componentItem);
     }
 
     /** @internal */

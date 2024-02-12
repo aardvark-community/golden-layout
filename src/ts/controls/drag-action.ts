@@ -6,7 +6,6 @@ import { ContentItem } from '../items/content-item';
 import { ComponentItem } from '../items/component-item';
 import { DragListener } from '../utils/drag-listener';
 import { getWindowInnerScreenPosition } from '../utils/utils';
-import { Stack } from '../items/stack';
 
 /** @internal */
 class DragTarget {
@@ -92,8 +91,8 @@ export class DragAction extends EventEmitter {
         );
     }
 
-    private createProxy(item: ComponentItem, stack: Stack | null, x: number, y: number) {
-        this._dragProxy = new DragProxy(this, item, stack, x, y);
+    private createProxy(item: ComponentItem, x: number, y: number) {
+        this._dragProxy = new DragProxy(this, item, x, y);
     }
 
     private dragLocal(pageX: number, pageY: number): DragTarget | null {
@@ -124,7 +123,7 @@ export class DragAction extends EventEmitter {
                 
                 const config = source.componentItem.toConfig();
                 const dragItem = new ComponentItem(this.layoutManager, config, parent);
-                this.createProxy(dragItem, null, pageX, pageY);
+                this.createProxy(dragItem, pageX, pageY);
             }
         } else {
             // Proxy is no longer visible and not currently the drag target -> destroy
@@ -199,14 +198,14 @@ export class DragAction extends EventEmitter {
     }
 
     // Start a drag action, immediately showing a proxy element.
-    static start(layoutManager: LayoutManager, listener: DragListener, item: ComponentItem, stack: Stack | null, x: number, y: number): DragAction {
+    static start(layoutManager: LayoutManager, listener: DragListener, item: ComponentItem, x: number, y: number): DragAction {
         const allowPopout =
             layoutManager.layoutConfig.settings.dragToNewWindow &&
             item.isClosable &&
             (item.findAncestorWithSiblings() !== null);
             
         const action = new DragAction(layoutManager, allowPopout);
-        action.createProxy(item, stack, x, y);
+        action.createProxy(item, x, y);
         action._dragListener = listener;
         listener.on('drag', action._dragEventHandler);
         listener.on('dragStop', action._dragStopEventHandler);

@@ -1186,7 +1186,7 @@ export abstract class LayoutManager extends EventEmitter {
     setMaximisedStack(stack: Stack | undefined): void;
     setSize(width: number, height: number): void;
     // @internal (undocumented)
-    startComponentDrag(x: number, y: number, dragListener: DragListener, componentItem: ComponentItem, stack: Stack): void;
+    startComponentDrag(x: number, y: number, dragListener: DragListener, componentItem: ComponentItem): void;
     // @internal (undocumented)
     get tabDropPlaceholder(): HTMLElement;
     // @deprecated (undocumented)
