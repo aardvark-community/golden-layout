@@ -787,10 +787,11 @@ export class Stack extends ComponentParentableItem {
             const tabDropPlaceholderRect = this.layoutManager.tabDropPlaceholder.getBoundingClientRect();
             const tabDropPlaceholderRectTop = tabDropPlaceholderRect.top + document.body.scrollTop;
             const tabDropPlaceholderRectLeft = tabDropPlaceholderRect.left + document.body.scrollLeft;
-            const tabDropPlaceholderRectWidth = tabDropPlaceholderRect.width;
 
             if (this._header.leftRightSided) {
                 const placeHolderTop = tabDropPlaceholderRectTop;
+                const tabDropPlaceholderRectWidth = tabDropPlaceholderRect.height;
+
                 area = {
                     x1: tabTop,
                     x2: tabTop + tabElement.clientHeight,
@@ -799,6 +800,7 @@ export class Stack extends ComponentParentableItem {
                 };
             } else {
                 const placeHolderLeft = tabDropPlaceholderRectLeft;
+                const tabDropPlaceholderRectWidth = tabDropPlaceholderRect.width;
 
                 area = {
                     x1: placeHolderLeft,
@@ -822,7 +824,7 @@ export class Stack extends ComponentParentableItem {
     private setupHeaderPosition() {
         setElementDisplayVisibility(this._header.element, this._header.show);
         this.element.classList.remove(DomConstants.ClassName.Left, DomConstants.ClassName.Right, DomConstants.ClassName.Bottom);
-        if (this._header.leftRightSided) {
+        if (this._header.side !== Side.top) {
             this.element.classList.add('lm_' + this._header.side);
         }
 
