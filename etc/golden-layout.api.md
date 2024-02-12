@@ -1129,6 +1129,7 @@ export abstract class LayoutManager extends EventEmitter {
     focusComponent(item: ComponentItem, suppressEvent?: boolean): void;
     // (undocumented)
     get focusedComponentItem(): ComponentItem | undefined;
+    focusWindow: (this: void) => void;
     // @internal (undocumented)
     getArea(x: number, y: number): ContentItem.Area | null;
     // Warning: (ae-forgotten-export) The symbol "GroundItem" needs to be exported by the entry point index.d.ts

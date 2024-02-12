@@ -161,6 +161,7 @@ export class DragProxy extends EventEmitter {
             droppedComponentItem = this._componentItem;
             const newParentContentItem = area.contentItem;
             newParentContentItem.onDrop(droppedComponentItem, area);
+            this.layoutManager.focusWindow();
 
         /**
          * No valid drop area found during the duration of the drag.

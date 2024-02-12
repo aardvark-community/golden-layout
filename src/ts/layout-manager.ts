@@ -132,6 +132,13 @@ export abstract class LayoutManager extends EventEmitter {
      */
     moveWindowTop: (this: void) => void = () => {};
 
+    /**
+     * Focus the associated window window.
+     * Default implementation invokes window.focus() (can be set by Electron).
+     * @public 
+     */
+    focusWindow: (this: void) => void = () => globalThis.focus();
+
     get container(): HTMLElement { return this._containerElement; }
     get isInitialised(): boolean { return this._isInitialised; }
     get isDragging(): boolean { return document.body.classList.contains(DomConstants.ClassName.Dragging); }
