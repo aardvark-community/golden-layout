@@ -99,7 +99,7 @@ export function getWindowTopLeftBorder(window: Window | typeof globalThis): Widt
         borderY = innerScreenY - window.screenY;
     }
 
-    return { width: borderX, height: borderY }
+    return { width: Math.max(0, borderX), height: Math.max(0, borderY) }
 }
 
 /** @internal */
