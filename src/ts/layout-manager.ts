@@ -986,17 +986,28 @@ export abstract class LayoutManager extends EventEmitter {
 
     /** @internal */
     startComponentDrag(x: number, y: number, dragListener: DragListener, componentItem: ComponentItem): void {
-        // Cancel the drag of the last remaining component immediately if:
-        //  (1) this is the main window (which must not be destroyed, popouts are closed when the last component is removed)
-        //  (2) or dragging between windows is disabled (only the current location is a valid drop target)
-        if ((this._parent === null || !this.layoutConfig.settings.dragBetweenWindows || !componentItem.isClosable) && componentItem.findAncestorWithSiblings() === null) {
+        const isLast = componentItem.findAncestorWithSiblings() === null;
+
+        const allowPopout =
+            componentItem.isClosable &&
+            this.layoutConfig.settings.dragToNewWindow &&
+            (this.parent === null || !isLast);                  // Popout is destroyed when last component is removed, drag to new popout makes no sense
+
+        const canMoveBetweenWindows =
+            componentItem.isClosable &&
+            this.layoutConfig.settings.dragBetweenWindows &&
+            (this._parent ?? this)._openPopouts.length > 0;     // Are there even multiple windows?
+
+        // Cancel the drag if this is the last component and there are no valid external targets.
+        // In this case, only the current layout configuration is possible, so there is no point in dragging.
+        if (isLast && !allowPopout && !canMoveBetweenWindows) {
             dragListener.cancelDrag();
             return;
         }
 
-        const action = DragAction.start(this, dragListener, componentItem, x, y);
+        const action = DragAction.start(this, dragListener, componentItem, x, y, allowPopout);
 
-        if (this.layoutConfig.settings.dragBetweenWindows && componentItem.isClosable) {
+        if (canMoveBetweenWindows) {
             for (let lm of this.instances) {
                 if (lm !== this) {
                     lm.startExternalComponentDrag(action);

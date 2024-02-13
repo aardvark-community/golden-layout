@@ -198,12 +198,7 @@ export class DragAction extends EventEmitter {
     }
 
     // Start a drag action, immediately showing a proxy element.
-    static start(layoutManager: LayoutManager, listener: DragListener, item: ComponentItem, x: number, y: number): DragAction {
-        const allowPopout =
-            layoutManager.layoutConfig.settings.dragToNewWindow &&
-            item.isClosable &&
-            (item.findAncestorWithSiblings() !== null);
-            
+    static start(layoutManager: LayoutManager, listener: DragListener, item: ComponentItem, x: number, y: number, allowPopout: boolean): DragAction {            
         const action = new DragAction(layoutManager, allowPopout);
         action.createProxy(item, x, y);
         action._dragListener = listener;

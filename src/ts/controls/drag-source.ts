@@ -115,7 +115,7 @@ export class DragSource {
         if (this._dragListener === null) {
             throw new UnexpectedNullError('DSODSD66746');
         } else {
-            const action = DragAction.start(this._layoutManager, this._dragListener, componentItem, x, y);
+            const action = DragAction.start(this._layoutManager, this._dragListener, componentItem, x, y, false);
 
             const transitionIndicator = this._layoutManager.transitionIndicator;
             if (transitionIndicator === null) {
