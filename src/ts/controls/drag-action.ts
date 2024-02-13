@@ -163,7 +163,9 @@ export class DragAction extends EventEmitter {
                 t = this.dragLocal(event.pageX, event.pageY);
             }
 
-            if (target === null) {
+            // Only set target if we don't already have one, unless the preliminary target
+            // belongs to the main window. In that case we set the new target to prioritize popout windows over the main window.
+            if (target === null || (t !== null && target.owner.layoutManager.parent === null)) {
                 target = t;
             }
         }
