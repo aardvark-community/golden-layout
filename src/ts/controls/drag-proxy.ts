@@ -1,5 +1,5 @@
 import { ResolvedPopoutLayoutConfig } from '../config/resolved-config';
-import { UnexpectedNullError, UnexpectedUndefinedError } from '../errors/internal-error';
+import { UnexpectedNullError } from '../errors/internal-error';
 import { ComponentItem } from '../items/component-item';
 import { ContentItem } from '../items/content-item';
 import { LayoutManager } from '../layout-manager';
@@ -27,6 +27,7 @@ export class DragProxy extends EventEmitter {
     private _proxyContainerElement: HTMLElement;
     private _componentItemFocused: boolean;
     private readonly _originalSize: WidthAndHeight;
+    private readonly _dockPoint: ContentItem.DockPoint | null;
 
     get element(): HTMLElement { return this._element; }
     get outerWidth(): number { return this._outerWidth; }
@@ -58,6 +59,8 @@ export class DragProxy extends EventEmitter {
         if (this._componentItemFocused) {
             this._componentItem.blur();
         }
+
+        this._dockPoint = this._componentItem.findDockPoint();
 
         if (this._componentItem.parent.contentItems.includes(this._componentItem)) {
             this._componentItem.parent.removeChild(this._componentItem, true);
@@ -175,7 +178,7 @@ export class DragProxy extends EventEmitter {
                 height: this._originalSize.height
             }
 
-            this.layoutManager.createPopoutFromContentItem(this._componentItem, window, getUniqueId(), undefined);
+            this.layoutManager.createPopoutFromContentItem(this._componentItem, window, getUniqueId(), this._dockPoint);
             this._componentItem.destroy();
 
         /**

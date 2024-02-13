@@ -352,6 +352,7 @@ export abstract class ContentItem extends EventEmitter {
         };
     }
 
+    /** @internal */
     findAncestorWithSiblings(): ContentItem | null {
         let curr: ContentItem | null = this;
 
@@ -360,6 +361,24 @@ export abstract class ContentItem extends EventEmitter {
                 return curr;
             }
             curr = curr.parent;
+        }
+
+        return null;
+    }
+
+    /** 
+     * Finds an ancestor that will exist even after the item is removed and returns it as dock point.
+     * 
+     * @internal */
+    findDockPoint(): ContentItem.DockPoint | null {
+        const anchor = this.findAncestorWithSiblings();
+
+        if (anchor !== null && anchor.parent !== null) {
+            const index = anchor.parent._contentItems.indexOf(anchor);
+            return { parent: anchor.parent, index };
+
+        } else if (this.layoutManager.groundItem) {
+            return { parent: this.layoutManager.groundItem, index: null };
         }
 
         return null;
@@ -520,6 +539,11 @@ export namespace ContentItem {
     export interface Area extends AreaLinkedRect {
         surface: number;
         contentItem: ContentItem;
+    }
+    /** @public */
+    export interface DockPoint {
+        parent: ContentItem;
+        index: number | null;
     }
 }
 
