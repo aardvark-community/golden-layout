@@ -133,6 +133,8 @@ export class TabsContainer {
             this.tryUpdateTabSizes(dropDownActive, availableWidth, activeComponentItem)
         }
 
+        this._element.style.maxWidth = numberToPixels(availableWidth);
+
         if (dropDownActive !== this._dropdownActive) {
             this._dropdownActive = dropDownActive;
             this._dropdownActiveChangedEvent();

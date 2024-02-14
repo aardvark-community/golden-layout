@@ -122,6 +122,8 @@ $height6: 15px; // Appears 1 time
     position: absolute;
     display: flex;
     height: 20px;
+    overflow: hidden;
+    max-width: 100%;
   }
 
   // Single Tab container. A single Tab is set for each pane, a group of Tabs are contained in ".lm_header"
@@ -132,6 +134,8 @@ $height6: 15px; // Appears 1 time
     padding: 0px 10px 5px;
     position: relative;
     touch-action: none;
+    max-width: 100%;
+    box-sizing: border-box !important;
 
     i {
       width: $width6;
@@ -153,6 +157,8 @@ $height6: 15px; // Appears 1 time
       display: inline-block;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%
     }
 
     // Close Tab Icon
