@@ -1,5 +1,5 @@
 import { ResolvedPopoutLayoutConfig } from '../config/resolved-config';
-import { UnexpectedNullError } from '../errors/internal-error';
+import { UnexpectedNullError, UnexpectedUndefinedError } from '../errors/internal-error';
 import { ComponentItem } from '../items/component-item';
 import { ContentItem } from '../items/content-item';
 import { LayoutManager } from '../layout-manager';
@@ -28,6 +28,8 @@ export class DragProxy extends EventEmitter {
     private _componentItemFocused: boolean;
     private readonly _originalSize: WidthAndHeight;
     private readonly _dockPoint: ContentItem.DockPoint | null;
+    private readonly _groundArea: ContentItem.Area;
+    private _lastArea: ContentItem.Area | null = null;
 
     get element(): HTMLElement { return this._element; }
     get outerWidth(): number { return this._outerWidth; }
@@ -70,6 +72,11 @@ export class DragProxy extends EventEmitter {
 
         document.body.appendChild(this._element);
 
+        if (this.layoutManager.groundItem === undefined) {
+            throw new UnexpectedUndefinedError('DPC10098');
+        }
+
+        this._groundArea = this.layoutManager.groundItem.getElementArea();
         this.layoutManager.calculateItemAreas();
         this.setDropPosition(x, y);
     }
@@ -136,7 +143,16 @@ export class DragProxy extends EventEmitter {
     private setDropPosition(x: number, y: number): ContentItem.Area | null {
         this._element.style.left = numberToPixels(x);
         this._element.style.top = numberToPixels(y);
-        return this.layoutManager.getArea(x, y);
+
+        const area = this.layoutManager.getArea(x, y);
+
+        // If we have no matching area, return the last area instead (unless we are out of bounds of the ground item).
+        // Avoids issues with splitters which don't have an area themselves.
+        if (area !== null || x < this._groundArea.x1 || x >= this._groundArea.x2 || y < this._groundArea.y1 || y >= this._groundArea.y2) {
+            this._lastArea = area;
+        }
+
+        return this._lastArea;
     }
 
     /**
