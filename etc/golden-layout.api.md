@@ -298,8 +298,10 @@ export abstract class ContentItem extends EventEmitter {
     destroy(): void;
     // (undocumented)
     get element(): HTMLElement;
-    // (undocumented)
+    // @internal (undocumented)
     findAncestorWithSiblings(): ContentItem | null;
+    // @internal
+    findDockPoint(): ContentItem.DockPoint | null;
     // @internal
     getElementArea(element?: HTMLElement): ContentItem.Area;
     // @internal (undocumented)
@@ -378,6 +380,13 @@ export namespace ContentItem {
         contentItem: ContentItem;
         // (undocumented)
         surface: number;
+    }
+    // (undocumented)
+    export interface DockPoint {
+        // (undocumented)
+        index: number | null;
+        // (undocumented)
+        parent: ContentItem;
     }
 }
 
@@ -1103,9 +1112,8 @@ export abstract class LayoutManager extends EventEmitter {
     createAndInitContentItem(config: ResolvedItemConfig, parent: ContentItem): ContentItem;
     // @internal
     createContentItem(config: ResolvedItemConfig, parent: ContentItem): ContentItem;
-    createPopout(itemConfigOrContentItem: ContentItem | ResolvedRootItemConfig, positionAndSize: ResolvedPopoutLayoutConfig.Window, parentId: string | null, indexInParent: number | null): BrowserPopout;
     // @internal (undocumented)
-    createPopoutFromContentItem(item: ContentItem, window: ResolvedPopoutLayoutConfig.Window | undefined, parentId: string | null, indexInParent: number | null | undefined): BrowserPopout;
+    createPopoutFromContentItem(item: ContentItem, window: ResolvedPopoutLayoutConfig.Window | undefined, parentId: string | null, dockPoint: ContentItem.DockPoint | null | undefined): BrowserPopout;
     // @internal (undocumented)
     createPopoutFromPopoutLayoutConfig(config: ResolvedPopoutLayoutConfig): BrowserPopout;
     // @deprecated (undocumented)

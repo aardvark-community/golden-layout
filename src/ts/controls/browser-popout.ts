@@ -297,16 +297,23 @@ export class BrowserPopout extends EventEmitter {
         // Initial window size parameters describe client (i.e. inner) position and size
         // Since the border of the popout may have different borders than the main window, we have
         // to adjust the position and size once the window has been created.
-        const border = getWindowTopLeftBorder(this._popoutWindow);
-        this._popoutWindow.moveTo(
-            this._initialWindowSize.left - border.width,
-            this._initialWindowSize.top - border.height,
-        )
-
-        this._popoutWindow.resizeTo(
-            this._initialWindowSize.width + (this._popoutWindow.outerWidth - this._popoutWindow.innerWidth),
-            this._initialWindowSize.height + (this._popoutWindow.outerHeight - this._popoutWindow.innerHeight)
-        );
+        // Only do this if the window parameters are plausible (e.g. on Linux inner dimension is zero sometimes)
+        if (this._popoutWindow.innerWidth > 0 && this._popoutWindow.innerHeight > 0 &&
+            this._popoutWindow.outerWidth > 0 && this._popoutWindow.outerHeight > 0 &&
+            this._popoutWindow.innerWidth <= this._popoutWindow.outerWidth &&
+            this._popoutWindow.innerHeight <= this._popoutWindow.outerHeight) {
+                
+            const border = getWindowTopLeftBorder(this._popoutWindow);
+            this._popoutWindow.moveTo(
+                this._initialWindowSize.left - border.width,
+                this._initialWindowSize.top - border.height,
+            )
+            
+            this._popoutWindow.resizeTo(
+                this._initialWindowSize.width + (this._popoutWindow.outerWidth - this._popoutWindow.innerWidth),
+                this._initialWindowSize.height + (this._popoutWindow.outerHeight - this._popoutWindow.innerHeight)
+            );
+        }
 
         this._popoutWindow.focus();
     }

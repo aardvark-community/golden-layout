@@ -765,33 +765,11 @@ export abstract class LayoutManager extends EventEmitter {
         }
     }
 
-    /**
-     * Creates a popout window with the specified content at the specified position
-     *
-     * @param itemConfigOrContentItem - The content of the popout window's layout manager derived from either
-     * a {@link (ContentItem:class)} or {@link (ItemConfig:interface)} or ResolvedItemConfig content (array of {@link (ItemConfig:interface)})
-     * @param positionAndSize - The width, height, left and top of Popout window
-     * @param parentId -The id of the element this item will be appended to when popIn is called
-     * @param indexInParent - The position of this item within its parent element
-     */
-
-    createPopout(itemConfigOrContentItem: ContentItem | ResolvedRootItemConfig,
-        positionAndSize: ResolvedPopoutLayoutConfig.Window,
-        parentId: string | null,
-        indexInParent: number | null
-    ): BrowserPopout {
-        if (itemConfigOrContentItem instanceof ContentItem) {
-            return this.createPopoutFromContentItem(itemConfigOrContentItem, positionAndSize, parentId, indexInParent);
-        } else {
-            return this.createPopoutFromItemConfig(itemConfigOrContentItem, positionAndSize, parentId, indexInParent);
-        }
-    }
-
     /** @internal */
     createPopoutFromContentItem(item: ContentItem,
         window: ResolvedPopoutLayoutConfig.Window | undefined,
         parentId: string | null,
-        indexInParent: number | null | undefined,
+        dockPoint: ContentItem.DockPoint | null | undefined,
     ): BrowserPopout {
         /**
          * If the item is the only component within a stack or for some
@@ -801,20 +779,13 @@ export abstract class LayoutManager extends EventEmitter {
          * In order to support this we move up the tree until we find something
          * that will remain after the item is being popped out
          */
-        const anchor = item.findAncestorWithSiblings() ?? this.groundItem?.contentItems[0]
-        if (anchor === undefined) {
-            throw new UnexpectedUndefinedError('LMCPFCI00833');
-        }
+        const dock = dockPoint ?? item.findDockPoint();
 
-        if (anchor.parent === null) {
+        if (dock === null) {
             throw new UnexpectedNullError('LMCPFCI00834');
         } else {
-            if (indexInParent === undefined) {
-                indexInParent = anchor.parent.contentItems.indexOf(anchor);
-            }
-
             if (parentId !== null) {
-                anchor.parent.addPopInParentId(parentId);
+                dock.parent.addPopInParentId(parentId);
             }
 
             if (window === undefined) {
@@ -837,7 +808,7 @@ export abstract class LayoutManager extends EventEmitter {
             if (!ResolvedRootItemConfig.isRootItemConfig(itemConfig)) {
                 throw new Error(`${i18nStrings[I18nStringId.PopoutCannotBeCreatedWithGroundItemConfig]}`);
             } else {
-                return this.createPopoutFromItemConfig(itemConfig, window, parentId, indexInParent);
+                return this.createPopoutFromItemConfig(itemConfig, window, parentId, dock.index);
             }
         }
     }
@@ -1015,17 +986,28 @@ export abstract class LayoutManager extends EventEmitter {
 
     /** @internal */
     startComponentDrag(x: number, y: number, dragListener: DragListener, componentItem: ComponentItem): void {
-        // Cancel the drag of the last remaining component immediately if:
-        //  (1) this is the main window (which must not be destroyed, popouts are closed when the last component is removed)
-        //  (2) or dragging between windows is disabled (only the current location is a valid drop target)
-        if ((this._parent === null || !this.layoutConfig.settings.dragBetweenWindows || !componentItem.isClosable) && componentItem.findAncestorWithSiblings() === null) {
+        const isLast = componentItem.findAncestorWithSiblings() === null;
+
+        const allowPopout =
+            componentItem.isClosable &&
+            this.layoutConfig.settings.dragToNewWindow &&
+            (this.parent === null || !isLast);                  // Popout is destroyed when last component is removed, drag to new popout makes no sense
+
+        const canMoveBetweenWindows =
+            componentItem.isClosable &&
+            this.layoutConfig.settings.dragBetweenWindows &&
+            (this._parent ?? this)._openPopouts.length > 0;     // Are there even multiple windows?
+
+        // Cancel the drag if this is the last component and there are no valid external targets.
+        // In this case, only the current layout configuration is possible, so there is no point in dragging.
+        if (isLast && !allowPopout && !canMoveBetweenWindows) {
             dragListener.cancelDrag();
             return;
         }
 
-        const action = DragAction.start(this, dragListener, componentItem, x, y);
+        const action = DragAction.start(this, dragListener, componentItem, x, y, allowPopout);
 
-        if (this.layoutConfig.settings.dragBetweenWindows && componentItem.isClosable) {
+        if (canMoveBetweenWindows) {
             for (let lm of this.instances) {
                 if (lm !== this) {
                     lm.startExternalComponentDrag(action);
