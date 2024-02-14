@@ -221,6 +221,7 @@ export class Header extends EventEmitter {
     private updateButtons(): void {
         const activeComponentItem = this._getActiveComponentItemEvent();
         const isLast = this._parent.findAncestorWithSiblings() === null;
+        const isMain = this.layoutManager.parent === null;
         
         // Close button is only visible if all items of the stack are closable
         // and the active component has its close button set to visible. Note that
@@ -235,10 +236,10 @@ export class Header extends EventEmitter {
         // Also we want to prevent popping out if that would leave us with an empty layout.
         let popout = activeComponentItem?.headerConfig?.popout !== false;
         if (this._layoutManager.layoutConfig.settings.popoutWholeStack) {
-            popout &&= !isLast && allClosable;
+            popout &&= (!isLast || isMain) && allClosable;
         } else {
             const closable = activeComponentItem?.isClosable !== false;
-            popout &&= !(isLast && this.tabs.length === 1) && closable;
+            popout &&= (!isLast || this.tabs.length > 1 || isMain) && closable;
         }
         setElementDisplayVisibility(this._popoutButton.element, popout);
 
