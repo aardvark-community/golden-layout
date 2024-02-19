@@ -2,6 +2,7 @@ import { ResolvedPopoutLayoutConfig } from '../config/resolved-config';
 import { UnexpectedNullError, UnexpectedUndefinedError } from '../errors/internal-error';
 import { ComponentItem } from '../items/component-item';
 import { ContentItem } from '../items/content-item';
+import { Stack } from '../items/stack';
 import { LayoutManager } from '../layout-manager';
 import { DomConstants } from '../utils/dom-constants';
 import { EventEmitter } from '../utils/event-emitter';
@@ -49,7 +50,18 @@ export class DragProxy extends EventEmitter {
     ) {
         super();
 
-        this._originalSize = this._componentItem.getOuterBoundingClientRect();
+        let sizedComponent = this._componentItem;
+
+        // If we are dragging an inactive component of a stack, we won't be able to get reasonable
+        // size for a popout. Use the size of the active component instead in this case.
+        if (this._componentItem.parent instanceof Stack) {
+            const active = this._componentItem.parent.getActiveComponentItem();
+            if (active) {
+                sizedComponent = active;
+            }
+        }
+
+        this._originalSize = sizedComponent.getOuterBoundingClientRect();
         this.createDragProxyElements(x, y);
 
         if (this._componentItem.parent === null) {
