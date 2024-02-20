@@ -580,17 +580,24 @@ export class RowOrColumn extends ContentItem {
     }
 
     /**
-     * Gets the minimum dimensions for the given item configuration array
+     * Gets the minimum dimensions for the given item taking its children into consideration.
      * @internal
      */
-    private calculateContentItemsTotalMinSize(contentItems: readonly ContentItem[]) {
-        let totalMinSize = 0;
+    private calculateContentItemsTotalMinSize(contentItem: ContentItem) {
+        let childrenMinSize = 0;
 
-        for (const contentItem of contentItems) {
-            totalMinSize += this.calculateContentItemMinSize(contentItem);
+        for (const child of contentItem.contentItems) {
+            const minSize = this.calculateContentItemsTotalMinSize(child);
+
+            if (contentItem instanceof RowOrColumn && (contentItem.isColumn === this._isColumn)) {
+                childrenMinSize += minSize; // Probably not possible (Row inside row, or column inside column)
+            } else {
+                childrenMinSize = Math.max(childrenMinSize, minSize);
+            }
         }
 
-        return totalMinSize;
+        const minSize = this.calculateContentItemMinSize(contentItem);
+        return Math.max(minSize, childrenMinSize);
     }
 
     /**
@@ -603,12 +610,12 @@ export class RowOrColumn extends ContentItem {
 
         const beforeWidth = pixelsToNumber(items.before.element.style[this._dimension]);
         const afterSize = pixelsToNumber(items.after.element.style[this._dimension]);
-        const beforeMinSize = this.calculateContentItemsTotalMinSize(items.before.contentItems);
-        const afterMinSize = this.calculateContentItemsTotalMinSize(items.after.contentItems);
+        const beforeMinSize = this.calculateContentItemsTotalMinSize(items.before);
+        const afterMinSize = this.calculateContentItemsTotalMinSize(items.after);
 
         this._splitterPosition = 0;
-        this._splitterMinPosition = -1 * (beforeWidth - beforeMinSize);
-        this._splitterMaxPosition = afterSize - afterMinSize;
+        this._splitterMinPosition = Math.min(0, -1 * (beforeWidth - beforeMinSize));
+        this._splitterMaxPosition = Math.max(0, afterSize - afterMinSize);
     }
 
     /**
