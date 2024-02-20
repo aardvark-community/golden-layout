@@ -62,7 +62,7 @@ export function getElementWidth(element: HTMLElement): number {
 
 /** @internal */
 export function setElementWidth(element: HTMLElement, width: number): void {
-    const widthAsPixels = numberToPixels(width);
+    const widthAsPixels = numberToPixels(Math.max(0, width));
     element.style.width = widthAsPixels;
 }
 
@@ -73,7 +73,7 @@ export function getElementHeight(element: HTMLElement): number {
 
 /** @internal */
 export function setElementHeight(element: HTMLElement, height: number): void {
-    const heightAsPixels = numberToPixels(height);
+    const heightAsPixels = numberToPixels(Math.max(0, height));
     element.style.height = heightAsPixels;
 }
 

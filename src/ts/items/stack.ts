@@ -9,8 +9,9 @@ import { EventEmitter } from '../utils/event-emitter';
 import { AreaLinkedRect, ItemType, JsonValue, Side, SizeUnitEnum, WidthAndHeight, WidthOrHeightPropertyName } from '../utils/types';
 import {
     getElementWidthAndHeight,
-    numberToPixels,
-    setElementDisplayVisibility
+    setElementDisplayVisibility,
+    setElementHeight,
+    setElementWidth
 } from '../utils/utils';
 import { ComponentItem } from './component-item';
 import { ComponentParentableItem } from './component-parentable-item';
@@ -689,11 +690,12 @@ export class Stack extends ComponentParentableItem {
                 const dimension = this._header.leftRightSided ? WidthOrHeightPropertyName.width : WidthOrHeightPropertyName.height;
                 content[dimension] -= this.layoutManager.layoutConfig.dimensions.headerHeight;
             }
-            this._childElementContainer.style.width = numberToPixels(content.width);
-            this._childElementContainer.style.height = numberToPixels(content.height);
+            setElementWidth(this._childElementContainer, content.width);
+            setElementHeight(this._childElementContainer, content.height);
+
             for (let i = 0; i < this.contentItems.length; i++) {
-                this.contentItems[i].element.style.width = numberToPixels(content.width);
-                this.contentItems[i].element.style.height = numberToPixels(content.height);
+                setElementWidth(this.contentItems[i].element, content.width);
+                setElementHeight(this.contentItems[i].element, content.height);
             }
             this.emit('resize');
             this.emitStateChangedEvent();
