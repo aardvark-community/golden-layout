@@ -194,6 +194,7 @@ export class BrowserPopout extends EventEmitter {
 
         const newContentItem = this._layoutManager.createAndInitContentItem(copiedRoot, parentItem);
 
+        index = (index !== null) ? Math.max(0, Math.min(parentItem.contentItems.length, index)) : null;
         parentItem.addChild(newContentItem, index);
         if (this._layoutManager.layoutConfig.settings.popInOnClose) {
             this._onClose();
