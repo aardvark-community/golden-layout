@@ -30,7 +30,7 @@ import { EventHub } from './utils/event-hub';
 import { I18nStringId, I18nStrings, i18nStrings } from './utils/i18n-strings';
 import { ItemType, JsonValue, Rect, ResponsiveMode, WidthAndHeight } from './utils/types';
 import {
-    getElementWidthAndHeight,
+    getElementClientWidthAndHeight,
     getWindowInnerScreenPosition,
     removeFromArray,
     setElementHeight,
@@ -654,7 +654,7 @@ export abstract class LayoutManager extends EventEmitter {
                 this._groundItem.setSize(this._width, this._height);
 
                 if (this._maximisedStack) {
-                    const { width, height } = getElementWidthAndHeight(this._containerElement);
+                    const { width, height } = getElementClientWidthAndHeight(this._containerElement);
                     setElementWidth(this._maximisedStack.element, width);
                     setElementHeight(this._maximisedStack.element, height);
                     this._maximisedStack.updateSize(false);
@@ -679,7 +679,7 @@ export abstract class LayoutManager extends EventEmitter {
 
     /** @internal */
     updateSizeFromContainer(): void {
-        const { width, height } = getElementWidthAndHeight(this._containerElement);
+        const { width, height } = getElementClientWidthAndHeight(this._containerElement);
         this.setSize(width, height);
     }
 
@@ -1318,7 +1318,7 @@ export abstract class LayoutManager extends EventEmitter {
             throw new UnexpectedUndefinedError('LMMXI19993');
         } else {
             this._groundItem.element.prepend(stack.element);
-            const { width, height } = getElementWidthAndHeight(this._containerElement);
+            const { width, height } = getElementClientWidthAndHeight(this._containerElement);
             setElementWidth(stack.element, width);
             setElementHeight(stack.element, height);
             stack.updateSize(true);

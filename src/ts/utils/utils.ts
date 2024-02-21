@@ -86,6 +86,14 @@ export function getElementWidthAndHeight(element: HTMLElement): WidthAndHeight {
 }
 
 /** @internal */
+export function getElementClientWidthAndHeight(element: HTMLElement): WidthAndHeight {
+    return {
+        width: element.clientWidth,
+        height: element.clientHeight,
+    };
+}
+
+/** @internal */
 export function getWindowTopLeftBorder(window: Window | typeof globalThis): WidthAndHeight {
     let innerScreenX: number | undefined = (<any>window).mozInnerScreenX;
     let innerScreenY: number | undefined = (<any>window).mozInnerScreenY;
