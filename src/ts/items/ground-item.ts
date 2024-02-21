@@ -181,7 +181,7 @@ export class GroundItem extends ComponentParentableItem {
                 setElementHeight(this.contentItems[0].element, height);
             }
 
-            this.updateContentItemsSize(false);
+            this.updateContentItemsSize(true);
         }
     }
 
