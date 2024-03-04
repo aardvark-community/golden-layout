@@ -231,15 +231,13 @@ export class Header extends EventEmitter {
         const close = activeComponentItem?.headerConfig?.close !== false;
         setElementDisplayVisibility(this._closeButton.element, allClosable && close);
         
-        // Popout button is visible if the active component is closable and has its popout button enabled.
-        // If popoutWholeStack = true, the button is only visible if every item is closable.
+        // Popout button is visible if the active component has its popout button enabled.
         // Also we want to prevent popping out if that would leave us with an empty layout.
         let popout = activeComponentItem?.headerConfig?.popout !== false;
         if (this._layoutManager.layoutConfig.settings.popoutWholeStack) {
-            popout &&= (!isLast || isMain) && allClosable;
+            popout &&= (!isLast || isMain);
         } else {
-            const closable = activeComponentItem?.isClosable !== false;
-            popout &&= (!isLast || this.tabs.length > 1 || isMain) && closable;
+            popout &&= (!isLast || this.tabs.length > 1 || isMain);
         }
         setElementDisplayVisibility(this._popoutButton.element, popout);
 

@@ -987,12 +987,10 @@ export abstract class LayoutManager extends EventEmitter {
         const isLast = componentItem.findAncestorWithSiblings() === null;
 
         const allowPopout =
-            componentItem.isClosable &&
             this.layoutConfig.settings.dragToNewWindow &&
             (this.parent === null || !isLast);                  // Popout is destroyed when last component is removed, drag to new popout makes no sense
 
         const canMoveBetweenWindows =
-            componentItem.isClosable &&
             this.layoutConfig.settings.dragBetweenWindows &&
             (this._parent ?? this)._openPopouts.length > 0;     // Are there even multiple windows?
 
