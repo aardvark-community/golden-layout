@@ -24,11 +24,13 @@ export class BrowserPopout extends EventEmitter {
     /** @internal */
     private _popoutWindow: Window | null;
     /** @internal */
-    private _isInitialised;
+    private _isInitialised: boolean;
     /** @internal */
     private _checkReadyInterval: ReturnType<typeof setTimeout> | undefined;
     /** @internal */
     private _preventPopInOnClose: boolean;
+
+    get isInitialised(): boolean { return this._isInitialised; }
 
     /**
      * @param _config - GoldenLayout item config

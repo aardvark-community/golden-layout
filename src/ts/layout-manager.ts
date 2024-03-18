@@ -374,8 +374,10 @@ export abstract class LayoutManager extends EventEmitter {
                 */
                 this.reconcilePopoutWindows();
                 const openPopouts: ResolvedPopoutLayoutConfig[] = [];
-                for (let i = 0; i < this._openPopouts.length; i++) {
-                    openPopouts.push(this._openPopouts[i].toConfig());
+                for (const popout of this._openPopouts) {
+                    if (popout.isInitialised) {
+                        openPopouts.push(popout.toConfig());
+                    }
                 }
 
                 const config: ResolvedLayoutConfig = {
