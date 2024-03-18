@@ -6,6 +6,7 @@ import { LayoutManager } from '../layout-manager'
 import { DomConstants } from '../utils/dom-constants'
 import { ItemType, JsonValue, SizeUnitEnum, WidthOrHeightPropertyName } from '../utils/types'
 import {
+    debounce,
     getElementHeight,
     getElementWidth,
     getElementWidthAndHeight,
@@ -39,6 +40,8 @@ export class RowOrColumn extends ContentItem {
     private _splitterMinPosition: number | null;
     /** @internal */
     private _splitterMaxPosition: number | null;
+    /** @internal */
+    private readonly _debouncedEmitStateChangedEvent = debounce(() => this.emitBaseBubblingEvent('stateChanged'));
 
     /** @internal */
     constructor(isColumn: boolean, layoutManager: LayoutManager, config: ResolvedRowOrColumnItemConfig,
@@ -149,7 +152,7 @@ export class RowOrColumn extends ContentItem {
         const newItemSize = (1 / this.contentItems.length) * 100;
 
         if (suspendResize === true) {
-            this.emitBaseBubblingEvent('stateChanged');
+            this.emitStateChangedEvent();
             return index;
         }
 
@@ -164,7 +167,7 @@ export class RowOrColumn extends ContentItem {
         }
 
         this.updateSize(false);
-        this.emitBaseBubblingEvent('stateChanged');
+        this.emitStateChangedEvent();
 
         return index;
     }
@@ -201,7 +204,7 @@ export class RowOrColumn extends ContentItem {
         //     this._rowOrColumnParent.replaceChild(this, childItem, true);
         // } else {
         this.updateSize(false);
-        this.emitBaseBubblingEvent('stateChanged');
+        this.emitStateChangedEvent();
         // }
     }
 
@@ -213,7 +216,7 @@ export class RowOrColumn extends ContentItem {
         super.replaceChild(oldChild, newChild);
         newChild.size = size;
         this.updateSize(false);
-        this.emitBaseBubblingEvent('stateChanged');
+        this.emitStateChangedEvent();
     }
 
     /**
@@ -279,7 +282,7 @@ export class RowOrColumn extends ContentItem {
             this.calculateRelativeSizes();
             this.setAbsoluteSizes();
         }
-        this.emitBaseBubblingEvent('stateChanged');
+        this.emitStateChangedEvent(true);
         this.emit('resize');
     }
 
@@ -668,6 +671,15 @@ export class RowOrColumn extends ContentItem {
             splitter.element.style.left = numberToPixels(0);
 
             globalThis.requestAnimationFrame(() => this.updateSize(false));
+        }
+    }
+
+    /** @internal */
+    private emitStateChangedEvent(debounce = false) {
+        if (debounce) {
+            this._debouncedEmitStateChangedEvent();
+        } else {
+            this.emitBaseBubblingEvent('stateChanged');
         }
     }
 }

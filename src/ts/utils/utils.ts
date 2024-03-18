@@ -244,3 +244,15 @@ export function getErrorMessage(e: unknown): string {
         }
     }
 }
+
+/** @internal */
+export function debounce<F extends (...args: Parameters<F>) => ReturnType<F>>(func: F, waitFor = 150) {
+    let timeout: ReturnType<typeof setTimeout>;
+
+    const debounced = (...args: Parameters<F>) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func(...args), waitFor);
+    };
+
+    return debounced;
+}

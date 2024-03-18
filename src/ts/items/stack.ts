@@ -8,6 +8,7 @@ import { DragListener } from '../utils/drag-listener';
 import { EventEmitter } from '../utils/event-emitter';
 import { AreaLinkedRect, ItemType, JsonValue, Side, SizeUnitEnum, WidthAndHeight, WidthOrHeightPropertyName } from '../utils/types';
 import {
+    debounce,
     getElementWidthAndHeight,
     setElementDisplayVisibility,
     setElementHeight,
@@ -48,6 +49,8 @@ export class Stack extends ComponentParentableItem {
     private _maximisedListener = () => this.handleMaximised();
     /** @internal */
     private _minimisedListener = () => this.handleMinimised();
+    /** @internal */
+    private readonly _debouncedEmitStateChangedEvent = debounce(() => this.emitBaseBubblingEvent('stateChanged'));
 
     get childElementContainer(): HTMLElement { return this._childElementContainer; }
     get header(): Header { return this._header; }
@@ -698,7 +701,7 @@ export class Stack extends ComponentParentableItem {
                 setElementHeight(this.contentItems[i].element, content.height);
             }
             this.emit('resize');
-            this.emitStateChangedEvent();
+            this.emitStateChangedEvent(true);
         }
     }
 
@@ -928,8 +931,12 @@ export class Stack extends ComponentParentableItem {
     }
 
     /** @internal */
-    private emitStateChangedEvent() {
-        this.emitBaseBubblingEvent('stateChanged');
+    private emitStateChangedEvent(debounce = false) {
+        if (debounce) {
+            this._debouncedEmitStateChangedEvent();
+        } else {
+            this.emitBaseBubblingEvent('stateChanged');
+        }
     }
 }
 
