@@ -133,12 +133,8 @@ export class BrowserPopout extends EventEmitter {
      * parent isn't available anymore it falls back to the layout's topmost element
      */
     popIn(): void {
-        let parentItem: ContentItem;
+        let parentItem: ContentItem | null = null;
         let index = this._config.indexInParent;
-
-        if (!this._config.parentId) {
-            return;
-        }
 
         /*
         * The deepExtend call seems a bit pointless, but it's crucial to
@@ -159,7 +155,10 @@ export class BrowserPopout extends EventEmitter {
         if (groundItem === undefined) {
             throw new UnexpectedUndefinedError('BPPIG34972');
         }
-        parentItem = groundItem.getItemsByPopInParentId(this._config.parentId)[0];
+
+        if (this._config.parentId) {    
+            parentItem = groundItem.getItemsByPopInParentId(this._config.parentId)[0];
+        }
 
         /*
         * Fallback if parentItem is not available. Either add it to the topmost

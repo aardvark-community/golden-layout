@@ -42,6 +42,8 @@ export class BrowserPopout extends EventEmitter {
     // (undocumented)
     getGlInstance(): LayoutManager;
     getWindow(): Window;
+    // (undocumented)
+    get isInitialised(): boolean;
     popIn(): void;
     // (undocumented)
     toConfig(): ResolvedPopoutLayoutConfig;
