@@ -1392,9 +1392,22 @@ export abstract class LayoutManager extends EventEmitter {
      * @internal
      */
     private createSubWindows() {
-        for (let i = 0; i < this.layoutConfig.openPopouts.length; i++) {
-            const popoutConfig = this.layoutConfig.openPopouts[i];
-            this.createPopoutFromPopoutLayoutConfig(popoutConfig);
+        for (const config of this.layoutConfig.openPopouts) {
+            const parentConfig = this.saveLayout();
+
+            const popoutLayoutConfig: ResolvedPopoutLayoutConfig = {
+                root: config.root,
+                openPopouts: config.openPopouts,
+                settings: parentConfig.settings,
+                dimensions: parentConfig.dimensions,
+                header: parentConfig.header,
+                window: config.window,
+                parentId: config.parentId,
+                indexInParent: config.indexInParent,
+                resolved: true,
+            }
+
+            this.createPopoutFromPopoutLayoutConfig(popoutLayoutConfig);
         }
     }
 
