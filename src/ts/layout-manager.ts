@@ -1006,8 +1006,14 @@ export abstract class LayoutManager extends EventEmitter {
         const action = DragAction.start(this, dragListener, componentItem, x, y, allowPopout);
 
         if (canMoveBetweenWindows) {
-            for (let lm of this.instances) {
-                if (lm !== this) {
+            // A popout whose window has closed stays in openPopouts until its 'closed' event, 50 ms later
+            // (BrowserPopout._onClose); a drag spawned in its instance throws in the closed window's realm.
+            const root = this._parent ?? this;
+            const closed = new Set(root._openPopouts
+                .filter((popout) => popout.getWindow()?.closed !== false)
+                .map((popout) => popout.getGlInstance()));
+            for (const lm of this.instances) {
+                if (lm !== this && !closed.has(lm)) {
                     lm.startExternalComponentDrag(action);
                 }
             }
